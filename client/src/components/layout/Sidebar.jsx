@@ -4,7 +4,6 @@ import {
   CheckSquare, 
   Settings, 
   Sparkles,
-  GraduationCap,
   X
 } from 'lucide-react';
 
@@ -37,10 +36,10 @@ export default function Sidebar({ isOpen, onClose }) {
         {/* Logo */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="TaskMind" className="w-full h-full object-contain" />
             </div>
-            <span className="font-semibold text-white">TaskMaster</span>
+            <span className="font-semibold text-white">TaskMind</span>
           </div>
           <button 
             onClick={onClose}

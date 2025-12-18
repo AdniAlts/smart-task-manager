@@ -96,7 +96,7 @@ _Jangan lupa selesaikan tugasmu! 💪_
             
             <div style="text-align: center; color: #64748b; font-size: 12px;">
                 <p>Jangan lupa selesaikan tugasmu! 💪</p>
-                <p>Smart Student Task Manager</p>
+                <p>TaskMind</p>
             </div>
         </div>
     `;
@@ -120,7 +120,7 @@ const sendNotification = async (user, task, hoursRemaining) => {
         if (user.email_enabled && user.email) {
             const transporter = getTransporter();
             await transporter.sendMail({
-                from: 'Smart Task Manager <noreply@smarttask.com>',
+                from: 'TaskMind <noreply@taskmind.com>',
                 to: user.email,
                 subject: emailSubject,
                 html: emailHtml

@@ -27,7 +27,7 @@ export default function Header({ onMenuClick, onAddTask }) {
           <Menu className="w-5 h-5 text-slate-400" />
         </button>
         <div className="hidden sm:block">
-          <h1 className="text-lg font-semibold text-white">Smart Task Manager</h1>
+          <h1 className="text-lg font-semibold text-white">TaskMind</h1>
           <p className="text-xs text-slate-400">Organize your academic life</p>
         </div>
       </div>

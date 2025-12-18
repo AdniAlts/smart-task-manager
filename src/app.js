@@ -20,7 +20,7 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Test Route (Cek server nyala/nggak)
 app.get('/', (req, res) => {
-    res.send('Smart Student Task Manager API is Running! 🚀');
+    res.send('TaskMind API is Running! 🚀');
 });
 
 // Start Server

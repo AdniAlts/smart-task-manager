@@ -18,7 +18,7 @@ const parseTaskFromText = async (userText) => {
 
         // Advanced Prompt Engineering dengan Chain-of-Thought
         const prompt = `
-You are an intelligent Task Parser AI for a Smart Student Task Manager app. Your job is to extract structured task information from natural language input in Bahasa Indonesia or English.
+You are an intelligent Task Parser AI for TaskMind app. Your job is to extract structured task information from natural language input in Bahasa Indonesia or English.
 
 ## CURRENT CONTEXT
 - Today: ${currentDay}, ${today}

@@ -40,7 +40,7 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
         // 1. Test Kirim Email (if enabled)
         if (user.email_enabled && user.email) {
             await transporter.sendMail({
-                from: 'Smart Task Manager',
+                from: 'TaskMind',
                 to: user.email,
                 subject: '🔔 Test Notifikasi Server',
                 text: 'Halo! Jika email ini masuk, berarti settingan SMTP Gmail berhasil.'
