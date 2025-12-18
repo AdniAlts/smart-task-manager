@@ -1,0 +1,20 @@
+{
+  "name": "smart-task-manager",
+  "version": "1.0.0",
+  "description": "Task manager app with integrated LLM feature",
+  "homepage": "https://github.com/AdniAlts/smart-task-manager#readme",
+  "bugs": {
+    "url": "https://github.com/AdniAlts/smart-task-manager/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdniAlts/smart-task-manager.git"
+  },
+  "license": "ISC",
+  "author": "AdniAlts",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
