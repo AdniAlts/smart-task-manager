@@ -45,11 +45,22 @@ const formatPriority = (priority) => {
 
 // Generate pesan notifikasi
 const generateNotificationMessage = (task, hoursRemaining) => {
-    const timeText = hoursRemaining <= 1 
-        ? '⚠️ KURANG DARI 1 JAM LAGI!' 
-        : hoursRemaining <= 24 
-            ? `⏰ ${hoursRemaining} jam lagi`
-            : `📅 ${Math.floor(hoursRemaining / 24)} hari lagi`;
+    // Format jam dengan lebih rapi
+    let timeText;
+    if (hoursRemaining < 1) {
+        const minutesRemaining = Math.round(hoursRemaining * 60);
+        timeText = `⚠️ KURANG DARI ${minutesRemaining} MENIT LAGI!`;
+    } else if (hoursRemaining <= 2) {
+        timeText = `⚠️ ${Math.round(hoursRemaining)} jam lagi!`;
+    } else if (hoursRemaining <= 24) {
+        timeText = `⏰ ${Math.round(hoursRemaining)} jam lagi`;
+    } else {
+        const days = Math.floor(hoursRemaining / 24);
+        const remainingHours = Math.round(hoursRemaining % 24);
+        timeText = remainingHours > 0 
+            ? `📅 ${days} hari ${remainingHours} jam lagi`
+            : `📅 ${days} hari lagi`;
+    }
 
     const telegramMessage = `
 🔔 *DEADLINE REMINDER*
@@ -219,14 +230,14 @@ const checkAndNotifyDeadlines = async () => {
 
 // Inisialisasi Cron Jobs
 const initScheduler = () => {
-    // Cek setiap 15 menit untuk deadline yang mendekat
-    cron.schedule('*/15 * * * *', () => {
+    // Cek setiap 1 menit untuk deadline yang mendekat
+    cron.schedule('* * * * *', () => {
         console.log('⏰ Running scheduled deadline check...');
         checkAndNotifyDeadlines();
     });
 
     // Cek juga saat server start
-    console.log('🚀 Scheduler initialized - checking deadlines every 15 minutes');
+    console.log('🚀 Scheduler initialized - checking deadlines every 1 minute');
     checkAndNotifyDeadlines();
 };
 
