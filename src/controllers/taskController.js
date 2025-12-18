@@ -4,9 +4,8 @@ const aiService = require('../services/aiService');
 // 1. GET ALL TASKS
 const getTasks = async (req, res) => {
     try {
-        // Nanti user_id ini diambil dari token login. 
-        // Untuk sekarang kita ambil dari query params atau hardcode 1 (dummy user)
-        const userId = req.query.user_id || 1; 
+        // Get user_id from authenticated user (from JWT token)
+        const userId = req.user.id;
         
         const tasks = await taskModel.getAllByUserId(userId);
         res.json({ data: tasks });
@@ -18,7 +17,8 @@ const getTasks = async (req, res) => {
 // 2. CREATE TASK (Manual Input & Save AI Result)
 const createTask = async (req, res) => {
     try {
-        const { user_id, title, subject, description, deadline, priority_level } = req.body;
+        const { title, subject, description, deadline, priority_level } = req.body;
+        const userId = req.user.id; // Get from authenticated user
 
         // Validasi sederhana
         if (!title || !deadline) {
@@ -26,7 +26,7 @@ const createTask = async (req, res) => {
         }
 
         const newId = await taskModel.create({
-            user_id: user_id || 1, // Default ke user 1 jika tidak ada
+            user_id: userId,
             title, 
             subject, 
             description, 
@@ -39,7 +39,7 @@ const createTask = async (req, res) => {
             message: "Tugas berhasil dibuat", 
             data: {
                 id: newId,
-                user_id: user_id || 1,
+                user_id: userId,
                 title,
                 subject: subject || null,
                 description: description || null,

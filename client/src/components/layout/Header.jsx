@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Menu, Plus, Bell, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, Plus, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function Header({ onMenuClick, onAddTask }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    // For now, just show alert. In real app, clear auth tokens
-    alert('Logout functionality will be implemented with authentication');
+    logout();
+    navigate('/login');
+    toast.success('Logged out successfully!');
     setShowProfileMenu(false);
   };
 
@@ -41,15 +45,6 @@ export default function Header({ onMenuClick, onAddTask }) {
           <span className="hidden sm:inline">Add Task</span>
         </button>
 
-        {/* Notification Bell */}
-        <Link 
-          to="/notifications"
-          className="p-2 rounded-lg hover:bg-slate-800 relative"
-        >
-          <Bell className="w-5 h-5 text-slate-400" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full" />
-        </Link>
-
         {/* User Avatar with Dropdown */}
         <div className="relative">
           <button 
@@ -58,7 +53,9 @@ export default function Header({ onMenuClick, onAddTask }) {
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 
                             flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
+              <span className="text-sm font-semibold text-white">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </span>
             </div>
             <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} />
           </button>
@@ -73,8 +70,8 @@ export default function Header({ onMenuClick, onAddTask }) {
               <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-xl shadow-xl 
                               border border-slate-700 py-1 z-20 animate-fade-in">
                 <div className="px-3 py-2 border-b border-slate-700">
-                  <p className="text-sm font-medium text-white">Student User</p>
-                  <p className="text-xs text-slate-400">student@university.edu</p>
+                  <p className="text-sm font-medium text-white">{user?.name || 'User'}</p>
+                  <p className="text-xs text-slate-400 truncate">{user?.email || '-'}</p>
                 </div>
                 <Link
                   to="/settings"

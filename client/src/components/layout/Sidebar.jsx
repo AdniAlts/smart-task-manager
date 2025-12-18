@@ -5,14 +5,12 @@ import {
   Settings, 
   Sparkles,
   GraduationCap,
-  X,
-  Bell
+  X
 } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/tasks', icon: CheckSquare, label: 'Tasks' },
-  { to: '/notifications', icon: Bell, label: 'Notifications' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 

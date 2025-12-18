@@ -1,4 +1,5 @@
 import { useTask } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/dashboard/StatCard';
 import { WeeklyLoadChart, PriorityDistributionChart } from '../components/dashboard/Charts';
 import { StatCardSkeleton, ChartSkeleton } from '../components/ui/Skeleton';
@@ -15,10 +16,11 @@ import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
   const { tasks, dashboardData, isLoading } = useTask();
+  const { user } = useAuth();
 
   // Calculate stats from tasks if dashboard data not available
   const pendingTasks = tasks.filter(t => !t.is_completed);
-  const urgentTasks = pendingTasks.filter(t => t.priority_level === 'Do First');
+  const urgentTasks = pendingTasks.filter(t => t.priority_level === 'do_first');
   const completedToday = tasks.filter(t => {
     if (!t.is_completed) return false;
     const today = new Date().toDateString();
@@ -75,13 +77,16 @@ export default function Dashboard() {
     return 'Good evening';
   };
 
+  // Get first name only
+  const firstName = user?.name?.split(' ')[0] || 'Student';
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Welcome Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">
-            {getGreeting()}, Student! 👋
+            {getGreeting()}, {firstName}! 👋
           </h1>
           <p className="text-slate-400 mt-1">
             Here's what's happening with your tasks today.
