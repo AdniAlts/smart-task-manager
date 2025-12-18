@@ -4,9 +4,8 @@ const aiService = require('../services/aiService');
 // 1. GET ALL TASKS
 const getTasks = async (req, res) => {
     try {
-        // Nanti user_id ini diambil dari token login. 
-        // Untuk sekarang kita ambil dari query params atau hardcode 1 (dummy user)
-        const userId = req.query.user_id || 1; 
+        // Get user_id from authenticated user (from JWT token)
+        const userId = req.user.id;
         
         const tasks = await taskModel.getAllByUserId(userId);
         res.json({ data: tasks });
@@ -18,7 +17,8 @@ const getTasks = async (req, res) => {
 // 2. CREATE TASK (Manual Input & Save AI Result)
 const createTask = async (req, res) => {
     try {
-        const { user_id, title, subject, description, deadline, priority_level } = req.body;
+        const { title, subject, description, deadline, priority_level } = req.body;
+        const userId = req.user.id; // Get from authenticated user
 
         // Validasi sederhana
         if (!title || !deadline) {
@@ -26,7 +26,7 @@ const createTask = async (req, res) => {
         }
 
         const newId = await taskModel.create({
-            user_id: user_id || 1, // Default ke user 1 jika tidak ada
+            user_id: userId,
             title, 
             subject, 
             description, 
@@ -34,9 +34,20 @@ const createTask = async (req, res) => {
             priority_level: priority_level || 'schedule'
         });
 
+        // Return the created task data
         res.status(201).json({ 
             message: "Tugas berhasil dibuat", 
-            task_id: newId 
+            data: {
+                id: newId,
+                user_id: userId,
+                title,
+                subject: subject || null,
+                description: description || null,
+                deadline,
+                priority_level: priority_level || 'schedule',
+                is_completed: false,
+                created_at: new Date().toISOString()
+            }
         });
     } catch (error) {
         res.status(500).json({ message: "Gagal membuat tugas", error: error.message });
@@ -57,7 +68,19 @@ const updateTask = async (req, res) => {
             return res.status(404).json({ message: "Tugas tidak ditemukan" });
         }
 
-        res.json({ message: "Tugas berhasil diupdate" });
+        // Return the updated fields
+        res.json({ 
+            message: "Tugas berhasil diupdate",
+            data: { 
+                id: parseInt(id),
+                ...(title !== undefined && { title }),
+                ...(subject !== undefined && { subject }),
+                ...(description !== undefined && { description }),
+                ...(deadline !== undefined && { deadline }),
+                ...(priority_level !== undefined && { priority_level }),
+                ...(is_completed !== undefined && { is_completed })
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: "Gagal update tugas", error: error.message });
     }

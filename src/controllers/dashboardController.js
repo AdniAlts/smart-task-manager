@@ -2,7 +2,8 @@ const pool = require('../config/database');
 
 const getDashboardStats = async (req, res) => {
     try {
-        const userId = req.query.user_id || 1; // Dummy user
+        // Get user_id from authenticated user (from JWT token)
+        const userId = req.user.id;
 
         // 1. Statistik per Prioritas (Untuk Pie Chart)
         // Hitung jumlah tugas yang BELUM selesai berdasarkan prioritas

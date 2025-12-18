@@ -1,119 +1,161 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { apiService } from '../services/api';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { tasksAPI, dashboardAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
-const TaskContext = createContext();
+const TaskContext = createContext(null);
 
-export const useTask = () => {
-  const context = useContext(TaskContext);
-  if (!context) {
-    throw new Error('useTask must be used within TaskProvider');
-  }
-  return context;
-};
-
-export const TaskProvider = ({ children }) => {
+export function TaskProvider({ children }) {
   const [tasks, setTasks] = useState([]);
   const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Fetch all tasks
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await apiService.getTasks();
+      setIsLoading(true);
+      const response = await tasksAPI.getAll();
       setTasks(response.data.data || []);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
+      setError(null);
+    } catch (err) {
+      setError('Failed to fetch tasks');
       toast.error('Failed to load tasks');
+      console.error('Error fetching tasks:', err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Fetch dashboard data
-  const fetchDashboard = async () => {
+  // Fetch dashboard stats
+  const fetchDashboard = useCallback(async () => {
     try {
-      const response = await apiService.getDashboard();
+      const response = await dashboardAPI.getStats();
       setDashboardData(response.data.data);
-    } catch (error) {
-      console.error('Error fetching dashboard:', error);
-      toast.error('Failed to load dashboard');
+    } catch (err) {
+      console.error('Error fetching dashboard:', err);
+      toast.error('Failed to load dashboard data');
     }
-  };
+  }, []);
 
   // Create new task
-  const createTask = async (taskData) => {
+  const createTask = useCallback(async (taskData) => {
     try {
-      const response = await apiService.createTask(taskData);
+      const response = await tasksAPI.create(taskData);
+      const newTask = response.data.data;
+      setTasks(prev => [newTask, ...prev]);
       toast.success('Task created successfully!');
-      await fetchTasks();
-      await fetchDashboard();
-      return response.data;
-    } catch (error) {
-      console.error('Error creating task:', error);
+      // Refresh dashboard to update stats
+      fetchDashboard();
+      return newTask;
+    } catch (err) {
       toast.error('Failed to create task');
-      throw error;
+      console.error('Error creating task:', err);
+      throw err;
     }
-  };
+  }, [fetchDashboard]);
 
-  // Update task (mark as complete, etc.)
-  const updateTask = async (id, data) => {
+  // Update task
+  const updateTask = useCallback(async (id, data) => {
     try {
-      await apiService.updateTask(id, data);
+      const response = await tasksAPI.update(id, data);
+      const updatedTask = response.data.data;
+      setTasks(prev => prev.map(task => 
+        task.id === id ? { ...task, ...updatedTask } : task
+      ));
       toast.success('Task updated!');
-      await fetchTasks();
-      await fetchDashboard();
-    } catch (error) {
-      console.error('Error updating task:', error);
+      fetchDashboard();
+      return updatedTask;
+    } catch (err) {
       toast.error('Failed to update task');
-      throw error;
+      console.error('Error updating task:', err);
+      throw err;
     }
-  };
+  }, [fetchDashboard]);
 
   // Delete task
-  const deleteTask = async (id) => {
+  const deleteTask = useCallback(async (id) => {
     try {
-      await apiService.deleteTask(id);
+      await tasksAPI.delete(id);
+      setTasks(prev => prev.filter(task => task.id !== id));
       toast.success('Task deleted!');
-      await fetchTasks();
-      await fetchDashboard();
-    } catch (error) {
-      console.error('Error deleting task:', error);
+      fetchDashboard();
+    } catch (err) {
       toast.error('Failed to delete task');
-      throw error;
+      console.error('Error deleting task:', err);
+      throw err;
     }
-  };
+  }, [fetchDashboard]);
 
-  // Analyze text with AI
-  const analyzeText = async (rawText) => {
+  // Toggle task completion
+  const toggleComplete = useCallback(async (id, isCompleted) => {
     try {
-      const response = await apiService.analyzeTask(rawText);
-      return response.data.data;
-    } catch (error) {
-      console.error('Error analyzing text:', error);
-      toast.error('Failed to analyze text');
-      throw error;
+      await tasksAPI.update(id, { is_completed: isCompleted });
+      setTasks(prev => prev.map(task => 
+        task.id === id ? { ...task, is_completed: isCompleted } : task
+      ));
+      toast.success(isCompleted ? 'Task completed! 🎉' : 'Task marked as pending');
+      fetchDashboard();
+    } catch (err) {
+      toast.error('Failed to update task');
+      console.error('Error toggling task:', err);
     }
-  };
+  }, [fetchDashboard]);
 
-  // Initial load
+  // Analyze task with AI
+  const analyzeTask = useCallback(async (rawText) => {
+    try {
+      const response = await tasksAPI.analyze(rawText);
+      return response.data.data;
+    } catch (err) {
+      toast.error('AI analysis failed');
+      console.error('Error analyzing task:', err);
+      throw err;
+    }
+  }, []);
+
+  // Test notification
+  const testNotification = useCallback(async () => {
+    try {
+      await tasksAPI.testNotify();
+      toast.success('Test notification sent!');
+    } catch (err) {
+      toast.error('Failed to send test notification');
+      console.error('Error testing notification:', err);
+    }
+  }, []);
+
+  // Initial fetch
   useEffect(() => {
     fetchTasks();
     fetchDashboard();
-  }, []);
+  }, [fetchTasks, fetchDashboard]);
 
   const value = {
     tasks,
     dashboardData,
-    loading,
+    isLoading,
+    error,
     fetchTasks,
     fetchDashboard,
     createTask,
     updateTask,
     deleteTask,
-    analyzeText,
+    toggleComplete,
+    analyzeTask,
+    testNotification,
   };
 
-  return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
-};
+  return (
+    <TaskContext.Provider value={value}>
+      {children}
+    </TaskContext.Provider>
+  );
+}
+
+export function useTask() {
+  const context = useContext(TaskContext);
+  if (!context) {
+    throw new Error('useTask must be used within a TaskProvider');
+  }
+  return context;
+}
