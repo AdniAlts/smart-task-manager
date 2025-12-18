@@ -4,6 +4,8 @@ const cors = require('cors');
 const taskRoutes = require('./routes/taskRoutes'); // Kita buat sebentar lagi
 const scheduler = require('./services/scheduler'); // Scheduler yang tadi kita bahas
 
+const dashboardRoutes = require('./routes/dashboardRoutes');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -13,6 +15,7 @@ app.use(express.json()); // Agar bisa baca JSON dari body request
 
 // Routes
 app.use('/api/tasks', taskRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Test Route (Cek server nyala/nggak)
 app.get('/', (req, res) => {

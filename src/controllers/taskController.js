@@ -1,4 +1,5 @@
 const taskModel = require('../models/taskModel');
+const aiService = require('../services/aiService');
 
 // 1. GET ALL TASKS
 const getTasks = async (req, res) => {
@@ -78,9 +79,34 @@ const deleteTask = async (req, res) => {
     }
 };
 
+const analyzeText = async (req, res) => {
+    try {
+        const { raw_text } = req.body;
+
+        if (!raw_text) {
+            return res.status(400).json({ message: "Teks raw_text wajib diisi" });
+        }
+
+        console.log("Menganalisa teks:", raw_text); // Debugging log
+
+        // Panggil AI
+        const parsedData = await aiService.parseTaskFromText(raw_text);
+
+        // Kembalikan hasil ke user (TIDAK SAVE KE DB)
+        res.json({
+            message: "Analisa AI selesai",
+            data: parsedData
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Gagal memproses AI", error: error.message });
+    }
+};
+
 module.exports = {
     getTasks,
     createTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    analyzeText
 };
