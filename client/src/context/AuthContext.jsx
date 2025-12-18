@@ -3,22 +3,42 @@ import api from '../services/api';
 
 const AuthContext = createContext(null);
 
+// Helper to get token from either storage
+const getStoredToken = () => {
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
+};
+
+// Helper to get remember me preference
+const getRememberMe = () => {
+  return localStorage.getItem('rememberMe') === 'true';
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(getStoredToken());
+  const [rememberMe, setRememberMe] = useState(getRememberMe());
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Set token in axios headers
+  // Set token in axios headers and appropriate storage
   useEffect(() => {
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      localStorage.setItem('token', token);
+      
+      // Store in appropriate storage based on remember me preference
+      if (rememberMe) {
+        localStorage.setItem('token', token);
+        sessionStorage.removeItem('token');
+      } else {
+        sessionStorage.setItem('token', token);
+        localStorage.removeItem('token');
+      }
     } else {
       delete api.defaults.headers.common['Authorization'];
       localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
     }
-  }, [token]);
+  }, [token, rememberMe]);
 
   // Fetch current user on mount
   const fetchUser = useCallback(async () => {
@@ -71,11 +91,20 @@ export function AuthProvider({ children }) {
   };
 
   // Login
-  const login = async (email, password, rememberMe = false) => {
+  const login = async (email, password, remember = false) => {
     try {
-      const response = await api.post('/auth/login', { email, password, rememberMe });
+      const response = await api.post('/auth/login', { email, password, rememberMe: remember });
       
       const { user: userData, token: newToken } = response.data.data;
+      
+      // Set remember me preference first
+      setRememberMe(remember);
+      if (remember) {
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('rememberMe');
+      }
+      
       setToken(newToken);
       setUser(userData);
       setIsAuthenticated(true);
@@ -94,7 +123,10 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
+    setRememberMe(false);
     localStorage.removeItem('token');
+    localStorage.removeItem('rememberMe');
+    sessionStorage.removeItem('token');
   };
 
   // Update user data after settings change
