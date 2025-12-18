@@ -2,7 +2,7 @@ import TaskCard from './TaskCard';
 import { CardSkeleton } from '../ui/Skeleton';
 import { ClipboardList } from 'lucide-react';
 
-export default function TaskList({ tasks, isLoading, groupBy = 'date' }) {
+export default function TaskList({ tasks, isLoading, groupBy = 'date', onViewDetail, onEditTask }) {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -72,26 +72,38 @@ export default function TaskList({ tasks, isLoading, groupBy = 'date' }) {
   // Group tasks by priority
   const groupTasksByPriority = (tasks) => {
     const groups = {
-      'Do First': [],
-      'Schedule': [],
-      'Delegate': [],
-      'Eliminate': [],
+      'do_first': [],
+      'schedule': [],
+      'delegate': [],
+      'eliminate': [],
+    };
+
+    // Map display names to snake_case
+    const priorityMap = {
+      'Do First': 'do_first',
+      'Schedule': 'schedule', 
+      'Delegate': 'delegate',
+      'Eliminate': 'eliminate',
     };
 
     tasks.forEach(task => {
-      const priority = task.priority_level || 'Eliminate';
+      let priority = task.priority_level || 'eliminate';
+      // Convert display name to snake_case if needed
+      if (priorityMap[priority]) {
+        priority = priorityMap[priority];
+      }
       if (groups[priority]) {
         groups[priority].push(task);
       } else {
-        groups['Eliminate'].push(task);
+        groups['eliminate'].push(task);
       }
     });
 
     return groups;
   };
 
-  const renderGroup = (title, tasks, icon, color) => {
-    if (tasks.length === 0) return null;
+  const renderGroup = (title, taskList, icon, color) => {
+    if (taskList.length === 0) return null;
     
     return (
       <div className="mb-6">
@@ -101,12 +113,12 @@ export default function TaskList({ tasks, isLoading, groupBy = 'date' }) {
             {title}
           </h3>
           <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">
-            {tasks.length}
+            {taskList.length}
           </span>
         </div>
         <div className="space-y-3">
-          {tasks.map(task => (
-            <TaskCard key={task.id} task={task} />
+          {taskList.map(task => (
+            <TaskCard key={task.id} task={task} onViewDetail={onViewDetail} onEdit={onEditTask} />
           ))}
         </div>
       </div>
@@ -130,10 +142,10 @@ export default function TaskList({ tasks, isLoading, groupBy = 'date' }) {
     const groups = groupTasksByPriority(tasks);
     return (
       <div>
-        {renderGroup('Do First', groups['Do First'], null, 'bg-rose-500')}
-        {renderGroup('Schedule', groups['Schedule'], null, 'bg-amber-500')}
-        {renderGroup('Delegate', groups['Delegate'], null, 'bg-blue-500')}
-        {renderGroup('Eliminate', groups['Eliminate'], null, 'bg-gray-500')}
+        {renderGroup('Do First', groups['do_first'], null, 'bg-rose-500')}
+        {renderGroup('Schedule', groups['schedule'], null, 'bg-amber-500')}
+        {renderGroup('Delegate', groups['delegate'], null, 'bg-blue-500')}
+        {renderGroup('Eliminate', groups['eliminate'], null, 'bg-gray-500')}
       </div>
     );
   }
@@ -142,7 +154,7 @@ export default function TaskList({ tasks, isLoading, groupBy = 'date' }) {
   return (
     <div className="space-y-3">
       {tasks.map(task => (
-        <TaskCard key={task.id} task={task} />
+        <TaskCard key={task.id} task={task} onViewDetail={onViewDetail} onEdit={onEditTask} />
       ))}
     </div>
   );

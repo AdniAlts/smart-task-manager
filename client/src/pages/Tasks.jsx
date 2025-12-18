@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTask } from '../context/TaskContext';
 import TaskList from '../components/tasks/TaskList';
+import TaskDetailModal from '../components/tasks/TaskDetailModal';
+import EditTaskModal from '../components/tasks/EditTaskModal';
 import { 
   Filter, 
   Calendar, 
@@ -15,6 +17,30 @@ export default function Tasks() {
   const [groupBy, setGroupBy] = useState('date');
   const [filterStatus, setFilterStatus] = useState('all'); // all, pending, completed
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+
+  const handleViewDetail = (task) => {
+    setSelectedTask(task);
+    setDetailModalOpen(true);
+  };
+
+  const handleCloseDetail = () => {
+    setDetailModalOpen(false);
+    setSelectedTask(null);
+  };
+
+  const handleEditTask = (task) => {
+    setEditingTask(task);
+    setEditModalOpen(true);
+  };
+
+  const handleCloseEdit = () => {
+    setEditModalOpen(false);
+    setEditingTask(null);
+  };
 
   // Filter tasks
   const filteredTasks = tasks.filter(task => {
@@ -135,6 +161,22 @@ export default function Tasks() {
         tasks={filteredTasks} 
         isLoading={isLoading} 
         groupBy={groupBy}
+        onViewDetail={handleViewDetail}
+        onEditTask={handleEditTask}
+      />
+
+      {/* Task Detail Modal */}
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={detailModalOpen}
+        onClose={handleCloseDetail}
+      />
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={editingTask}
+        isOpen={editModalOpen}
+        onClose={handleCloseEdit}
       />
     </div>
   );

@@ -1,32 +1,67 @@
 const priorityConfig = {
+  // Snake case from API
+  'do_first': {
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/30',
+    text: 'text-rose-400',
+    dot: 'bg-rose-500',
+    label: 'Do First',
+  },
+  'schedule': {
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30',
+    text: 'text-amber-400',
+    dot: 'bg-amber-500',
+    label: 'Schedule',
+  },
+  'delegate': {
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/30',
+    text: 'text-blue-400',
+    dot: 'bg-blue-500',
+    label: 'Delegate',
+  },
+  'eliminate': {
+    bg: 'bg-gray-500/10',
+    border: 'border-gray-500/30',
+    text: 'text-gray-400',
+    dot: 'bg-gray-500',
+    label: 'Eliminate',
+  },
+  // Display names (fallback)
   'Do First': {
     bg: 'bg-rose-500/10',
     border: 'border-rose-500/30',
     text: 'text-rose-400',
     dot: 'bg-rose-500',
+    label: 'Do First',
   },
   'Schedule': {
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/30',
     text: 'text-amber-400',
     dot: 'bg-amber-500',
+    label: 'Schedule',
   },
   'Delegate': {
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/30',
     text: 'text-blue-400',
     dot: 'bg-blue-500',
+    label: 'Delegate',
   },
   'Eliminate': {
     bg: 'bg-gray-500/10',
     border: 'border-gray-500/30',
     text: 'text-gray-400',
     dot: 'bg-gray-500',
+    label: 'Eliminate',
   },
 };
 
 export function PriorityBadge({ priority }) {
-  const config = priorityConfig[priority] || priorityConfig['Eliminate'];
+  const config = priorityConfig[priority] || priorityConfig['eliminate'];
+  const displayLabel = config?.label || priority;
   
   return (
     <span className={`
@@ -34,7 +69,7 @@ export function PriorityBadge({ priority }) {
       ${config.bg} ${config.border} ${config.text} border
     `}>
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-      {priority}
+      {displayLabel}
     </span>
   );
 }

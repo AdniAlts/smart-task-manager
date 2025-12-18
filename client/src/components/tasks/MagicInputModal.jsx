@@ -3,6 +3,7 @@ import { Sparkles, PenLine, Loader2, Wand2, AlertCircle } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import { useTask } from '../../context/TaskContext';
+import toast from 'react-hot-toast';
 
 export default function MagicInputModal({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('ai');
@@ -10,13 +11,14 @@ export default function MagicInputModal({ isOpen, onClose }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analyzedData, setAnalyzedData] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [aiError, setAiError] = useState(null);
   
   // Manual form state
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
     deadline: '',
-    priority_level: 'Schedule',
+    priority_level: 'schedule',
     description: '',
   });
 
@@ -25,11 +27,12 @@ export default function MagicInputModal({ isOpen, onClose }) {
   const resetState = () => {
     setRawText('');
     setAnalyzedData(null);
+    setAiError(null);
     setFormData({
       title: '',
       subject: '',
       deadline: '',
-      priority_level: 'Schedule',
+      priority_level: 'schedule',
       description: '',
     });
     setIsAnalyzing(false);
@@ -45,6 +48,7 @@ export default function MagicInputModal({ isOpen, onClose }) {
     if (!rawText.trim()) return;
     
     setIsAnalyzing(true);
+    setAiError(null);
     try {
       const result = await analyzeTask(rawText);
       setAnalyzedData(result);
@@ -53,11 +57,19 @@ export default function MagicInputModal({ isOpen, onClose }) {
         title: result.title || '',
         subject: result.subject || '',
         deadline: result.deadline ? formatDateForInput(result.deadline) : '',
-        priority_level: result.priority_level || 'Schedule',
+        priority_level: result.priority_level || 'schedule',
         description: result.description || '',
       });
     } catch (error) {
       console.error('Analysis failed:', error);
+      setAiError('AI analysis failed. You can still create the task manually.');
+      // Pre-fill with raw text as title
+      setFormData(prev => ({
+        ...prev,
+        title: rawText.substring(0, 100),
+        description: rawText,
+      }));
+      setAnalyzedData({ manual: true }); // Show the form anyway
     } finally {
       setIsAnalyzing(false);
     }
@@ -65,30 +77,34 @@ export default function MagicInputModal({ isOpen, onClose }) {
 
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return '';
-    return date.toISOString().slice(0, 16);
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return date.toISOString().slice(0, 16);
+    } catch {
+      return '';
+    }
   };
 
   const handleSave = async () => {
-    const dataToSave = activeTab === 'ai' && analyzedData ? formData : formData;
-    
-    if (!dataToSave.title.trim()) {
+    if (!formData.title.trim()) {
+      toast.error('Please enter a task title');
       return;
     }
 
     setIsSaving(true);
     try {
       await createTask({
-        title: dataToSave.title,
-        subject: dataToSave.subject,
-        deadline: dataToSave.deadline || null,
-        priority_level: dataToSave.priority_level,
-        description: dataToSave.description,
+        title: formData.title,
+        subject: formData.subject,
+        deadline: formData.deadline || null,
+        priority_level: formData.priority_level || 'schedule',
+        description: formData.description,
       });
       handleClose();
     } catch (error) {
       console.error('Save failed:', error);
+      toast.error('Failed to save task');
     } finally {
       setIsSaving(false);
     }
@@ -185,10 +201,17 @@ export default function MagicInputModal({ isOpen, onClose }) {
       {/* AI Result / Form */}
       {(activeTab === 'ai' && analyzedData) || activeTab === 'manual' ? (
         <div className="space-y-4">
-          {activeTab === 'ai' && analyzedData && (
+          {activeTab === 'ai' && analyzedData && !aiError && (
             <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-sm">
               <Sparkles className="w-4 h-4 text-emerald-400" />
               <span className="text-emerald-300">AI has analyzed your task. Review and edit if needed.</span>
+            </div>
+          )}
+
+          {aiError && (
+            <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm">
+              <AlertCircle className="w-4 h-4 text-amber-400" />
+              <span className="text-amber-300">{aiError}</span>
             </div>
           )}
 
@@ -234,10 +257,10 @@ export default function MagicInputModal({ isOpen, onClose }) {
                 className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg
                          text-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               >
-                <option value="Do First">Do First (Urgent)</option>
-                <option value="Schedule">Schedule</option>
-                <option value="Delegate">Delegate</option>
-                <option value="Eliminate">Eliminate (Low)</option>
+                <option value="do_first">Do First (Urgent)</option>
+                <option value="schedule">Schedule</option>
+                <option value="delegate">Delegate</option>
+                <option value="eliminate">Eliminate (Low)</option>
               </select>
             </div>
           </div>

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Check, Trash2, Clock, BookOpen, MoreVertical } from 'lucide-react';
+import { Check, Trash2, Clock, BookOpen, MoreVertical, Eye, Edit } from 'lucide-react';
 import { PriorityBadge, SubjectBadge } from '../ui/Badge';
 import { useTask } from '../../context/TaskContext';
 
-export default function TaskCard({ task }) {
+export default function TaskCard({ task, onViewDetail, onEdit }) {
   const { toggleComplete, deleteTask } = useTask();
   const [showMenu, setShowMenu] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -108,8 +108,31 @@ export default function TaskCard({ task }) {
                 className="fixed inset-0" 
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 mt-1 w-36 bg-slate-800 rounded-lg shadow-xl 
+              <div className="absolute right-0 mt-1 w-40 bg-slate-800 rounded-lg shadow-xl 
                               border border-slate-700 py-1 z-10">
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onViewDetail && onViewDetail(task);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 
+                             hover:bg-slate-700 transition-colors"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Details
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onEdit && onEdit(task);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-violet-400 
+                             hover:bg-slate-700 transition-colors"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Task
+                </button>
+                <hr className="my-1 border-slate-700" />
                 <button
                   onClick={() => {
                     setShowMenu(false);

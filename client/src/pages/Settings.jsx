@@ -9,7 +9,8 @@ import {
   Info,
   ExternalLink,
   TestTube,
-  CheckCircle
+  CheckCircle,
+  LogOut
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -162,6 +163,29 @@ export default function Settings() {
           >
             Documentation <ExternalLink className="w-3 h-3" />
           </a>
+        </div>
+      </div>
+
+      {/* Logout Section */}
+      <div className="mt-6 p-5 bg-slate-800/50 rounded-xl border border-slate-700/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-rose-500/20 rounded-lg flex items-center justify-center">
+              <LogOut className="w-5 h-5 text-rose-400" />
+            </div>
+            <div>
+              <p className="font-medium text-white">Sign Out</p>
+              <p className="text-xs text-slate-500">Sign out from your account</p>
+            </div>
+          </div>
+          <Button 
+            variant="danger"
+            size="sm"
+            onClick={() => toast.success('Logout functionality coming soon!')}
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
         </div>
       </div>
     </div>

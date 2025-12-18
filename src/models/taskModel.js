@@ -27,16 +27,46 @@ const TaskModel = {
         return result.insertId;
     },
 
-    // Update tugas
+    // Update tugas - only update fields that are provided
     update: async (id, data) => {
-        const { title, subject, description, deadline, priority_level, is_completed } = data;
-        // Kita gunakan COALESCE atau logika sederhana agar field yang tidak dikirim tidak menjadi NULL (opsional), 
-        // tapi untuk simpelnya kita update semua field yang dikirim.
+        // Build dynamic update query based on provided fields
+        const fields = [];
+        const values = [];
+        
+        if (data.title !== undefined) {
+            fields.push('title = ?');
+            values.push(data.title);
+        }
+        if (data.subject !== undefined) {
+            fields.push('subject = ?');
+            values.push(data.subject);
+        }
+        if (data.description !== undefined) {
+            fields.push('description = ?');
+            values.push(data.description);
+        }
+        if (data.deadline !== undefined) {
+            fields.push('deadline = ?');
+            values.push(data.deadline);
+        }
+        if (data.priority_level !== undefined) {
+            fields.push('priority_level = ?');
+            values.push(data.priority_level);
+        }
+        if (data.is_completed !== undefined) {
+            fields.push('is_completed = ?');
+            values.push(data.is_completed);
+        }
+        
+        if (fields.length === 0) {
+            return 0; // Nothing to update
+        }
+        
+        values.push(id);
+        
         const [result] = await db.query(
-            `UPDATE tasks 
-             SET title=?, subject=?, description=?, deadline=?, priority_level=?, is_completed=? 
-             WHERE id=?`,
-            [title, subject, description, deadline, priority_level, is_completed, id]
+            `UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`,
+            values
         );
         return result.affectedRows;
     },

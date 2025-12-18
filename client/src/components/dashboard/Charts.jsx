@@ -13,10 +13,26 @@ import {
 } from 'recharts';
 
 const PRIORITY_COLORS = {
-  'Do First': '#f43f5e',   // rose-500
-  'Schedule': '#f59e0b',   // amber-500
-  'Delegate': '#3b82f6',   // blue-500
-  'Eliminate': '#6b7280',  // gray-500
+  'do_first': '#f43f5e',   // rose-500
+  'schedule': '#f59e0b',   // amber-500
+  'delegate': '#3b82f6',   // blue-500
+  'eliminate': '#6b7280',  // gray-500
+  // Also support display names
+  'Do First': '#f43f5e',
+  'Schedule': '#f59e0b',
+  'Delegate': '#3b82f6',
+  'Eliminate': '#6b7280',
+};
+
+// Convert snake_case to display name
+const formatPriorityName = (priority) => {
+  const map = {
+    'do_first': 'Do First',
+    'schedule': 'Schedule',
+    'delegate': 'Delegate',
+    'eliminate': 'Eliminate',
+  };
+  return map[priority] || priority;
 };
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -36,17 +52,42 @@ const CustomTooltip = ({ active, payload, label }) => {
 export function WeeklyLoadChart({ data }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-slate-500">
-        No data available
+      <div className="h-64 flex flex-col items-center justify-center text-slate-500">
+        <p>No weekly data yet</p>
+        <p className="text-xs mt-1">Tasks will appear here as you add them</p>
       </div>
     );
   }
 
-  // Transform data for the chart
-  const chartData = data.map(item => ({
-    name: item.day || item.date,
-    tasks: item.task_count || item.count || 0,
-  }));
+  // Transform data for the chart - format dates properly
+  const chartData = data.map(item => {
+    let name = item.day || item.day_name;
+    
+    // If we have a date string, format it nicely
+    if (item.date) {
+      const date = new Date(item.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const isToday = date.toDateString() === today.toDateString();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const isTomorrow = date.toDateString() === tomorrow.toDateString();
+      
+      if (isToday) {
+        name = 'Today';
+      } else if (isTomorrow) {
+        name = 'Tomorrow';
+      } else {
+        name = date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' });
+      }
+    }
+    
+    return {
+      name,
+      tasks: item.task_count || item.count || item.total || 0,
+    };
+  });
 
   return (
     <ResponsiveContainer width="100%" height={280}>
@@ -62,6 +103,7 @@ export function WeeklyLoadChart({ data }) {
           axisLine={false}
           tickLine={false}
           tick={{ fill: '#94a3b8', fontSize: 12 }}
+          allowDecimals={false}
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(139, 92, 246, 0.1)' }} />
         <Bar 
@@ -78,18 +120,22 @@ export function WeeklyLoadChart({ data }) {
 export function PriorityDistributionChart({ data }) {
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-slate-500">
-        No data available
+      <div className="h-64 flex flex-col items-center justify-center text-slate-500">
+        <p>No priority data yet</p>
+        <p className="text-xs mt-1">Add tasks to see distribution</p>
       </div>
     );
   }
 
   // Transform data for the chart
-  const chartData = data.map(item => ({
-    name: item.priority_level || item.priority,
-    value: item.count || item.task_count || 0,
-    color: PRIORITY_COLORS[item.priority_level || item.priority] || '#6b7280',
-  }));
+  const chartData = data.map(item => {
+    const priority = item.priority_level || item.priority;
+    return {
+      name: formatPriorityName(priority),
+      value: item.total || item.count || item.task_count || 0,
+      color: PRIORITY_COLORS[priority] || '#6b7280',
+    };
+  });
 
   const CustomLegend = ({ payload }) => (
     <div className="flex flex-wrap justify-center gap-4 mt-4">
