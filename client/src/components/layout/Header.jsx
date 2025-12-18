@@ -82,15 +82,6 @@ export default function Header({ onMenuClick, onAddTask }) {
                   <User className="w-4 h-4" />
                   Profile
                 </Link>
-                <Link
-                  to="/settings"
-                  onClick={() => setShowProfileMenu(false)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 
-                             hover:bg-slate-700 transition-colors"
-                >
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </Link>
                 <hr className="my-1 border-slate-700" />
                 <button
                   onClick={handleLogout}

@@ -109,15 +109,15 @@ const sendNotification = async (user, task, hoursRemaining) => {
     const { telegramMessage, emailSubject, emailHtml } = generateNotificationMessage(task, hoursRemaining);
     
     try {
-        // Kirim Telegram
-        if (user.telegram_chat_id) {
+        // Kirim Telegram (hanya jika enabled dan ada chat_id)
+        if (user.telegram_enabled && user.telegram_chat_id) {
             const bot = getBot();
             await bot.sendMessage(user.telegram_chat_id, telegramMessage, { parse_mode: 'Markdown' });
             console.log(`✅ Telegram sent to ${user.telegram_chat_id} for task: ${task.title}`);
         }
 
-        // Kirim Email
-        if (user.email) {
+        // Kirim Email (hanya jika enabled dan ada email)
+        if (user.email_enabled && user.email) {
             const transporter = getTransporter();
             await transporter.sendMail({
                 from: 'Smart Task Manager <noreply@smarttask.com>',
@@ -126,6 +126,11 @@ const sendNotification = async (user, task, hoursRemaining) => {
                 html: emailHtml
             });
             console.log(`✅ Email sent to ${user.email} for task: ${task.title}`);
+        }
+        
+        // Log jika tidak ada notifikasi yang dikirim
+        if (!user.telegram_enabled && !user.email_enabled) {
+            console.log(`⚠️ No notifications enabled for user - skipping task: ${task.title}`);
         }
     } catch (error) {
         console.error(`❌ Failed to send notification for task ${task.id}:`, error.message);
@@ -139,13 +144,15 @@ const checkAndNotifyDeadlines = async () => {
     try {
         // Ambil semua task yang belum selesai dengan deadline dalam 25 jam ke depan
         // (25 jam untuk memastikan 24 jam dan 1 jam reminder tercakup)
+        // Hanya ambil task dari user yang punya notifikasi enabled
         const [tasks] = await pool.query(`
-            SELECT t.*, u.email, u.telegram_chat_id 
+            SELECT t.*, u.email, u.telegram_chat_id, u.telegram_enabled, u.email_enabled
             FROM tasks t
             JOIN users u ON t.user_id = u.id
             WHERE t.is_completed = FALSE 
             AND t.deadline IS NOT NULL
             AND t.deadline BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 25 HOUR)
+            AND (u.telegram_enabled = TRUE OR u.email_enabled = TRUE)
         `);
 
         if (tasks.length === 0) {
@@ -155,32 +162,44 @@ const checkAndNotifyDeadlines = async () => {
 
         const now = new Date();
         
+        console.log(`📋 Found ${tasks.length} upcoming tasks to check`);
+        
         for (const task of tasks) {
             const deadline = new Date(task.deadline);
-            const hoursUntilDeadline = Math.floor((deadline - now) / (1000 * 60 * 60));
+            const msUntilDeadline = deadline - now;
+            const hoursUntilDeadline = msUntilDeadline / (1000 * 60 * 60);
+            
+            console.log(`📝 Task "${task.title}" - Deadline: ${deadline.toLocaleString()}, Hours until: ${hoursUntilDeadline.toFixed(2)}`);
             
             // Cek apakah sudah pernah dinotifikasi untuk waktu ini
-            // Kita simpan info di field notified_24h dan notified_1h (perlu tambah ke DB)
-            // Untuk sekarang, kita notifikasi jika:
-            // - 23-25 jam sebelum deadline (reminder 24 jam)
-            // - 0-2 jam sebelum deadline (reminder 1 jam)
+            // - 22-26 jam sebelum deadline (reminder 24 jam) - lebih fleksibel
+            // - 0-3 jam sebelum deadline (reminder 1 jam/terakhir)
             
             let shouldNotify = false;
             let notificationType = '';
             
-            if (hoursUntilDeadline >= 23 && hoursUntilDeadline <= 25) {
-                // 24 hour reminder
+            if (hoursUntilDeadline >= 22 && hoursUntilDeadline <= 26) {
+                // 24 hour reminder (range diperlebar)
                 shouldNotify = !task.notified_24h;
                 notificationType = '24h';
-            } else if (hoursUntilDeadline >= 0 && hoursUntilDeadline <= 2) {
-                // 1 hour reminder  
+                console.log(`  → In 24h range, notified_24h: ${task.notified_24h}, shouldNotify: ${shouldNotify}`);
+            } else if (hoursUntilDeadline >= 0 && hoursUntilDeadline <= 3) {
+                // 1 hour/final reminder (range diperlebar)
                 shouldNotify = !task.notified_1h;
                 notificationType = '1h';
+                console.log(`  → In 1h range, notified_1h: ${task.notified_1h}, shouldNotify: ${shouldNotify}`);
+            } else {
+                console.log(`  → Not in notification range (hours: ${hoursUntilDeadline.toFixed(2)})`);
             }
             
             if (shouldNotify) {
                 await sendNotification(
-                    { email: task.email, telegram_chat_id: task.telegram_chat_id },
+                    { 
+                        email: task.email, 
+                        telegram_chat_id: task.telegram_chat_id,
+                        telegram_enabled: task.telegram_enabled,
+                        email_enabled: task.email_enabled
+                    },
                     task,
                     hoursUntilDeadline
                 );

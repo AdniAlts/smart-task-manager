@@ -22,12 +22,13 @@ export default function TaskCard({ task, onViewDetail, onEdit }) {
   const formatDeadline = (deadline) => {
     if (!deadline) return 'No deadline';
     const date = new Date(deadline);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString('id-ID', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: false,
     });
   };
 
