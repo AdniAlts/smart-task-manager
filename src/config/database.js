@@ -10,4 +10,14 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
+// Cek koneksi saat file ini dimuat pertama kali
+pool.getConnection()
+    .then(conn => {
+        console.log("✅ Database connected successfully!");
+        conn.release();
+    })
+    .catch(err => {
+        console.error("❌ Database connection failed:", err.message);
+    });
+
 module.exports = pool;

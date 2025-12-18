@@ -1,60 +1,86 @@
-const aiService = require('../services/tol');
 const taskModel = require('../models/taskModel');
 
-// 1. Endpoint A: Hanya untuk Preview/Analisa (Belum Save)
-// Route: POST /api/tasks/analyze
-const analyzeText = async (req, res) => {
+// 1. GET ALL TASKS
+const getTasks = async (req, res) => {
     try {
-        const { raw_text } = req.body;
-
-        if (!raw_text) {
-            return res.status(400).json({ message: "Teks tidak boleh kosong" });
-        }
-
-        // Panggil AI Service (Logic sama seperti sebelumnya)
-        const parsedData = await aiService.parseTaskFromText(raw_text);
-
-        // Kembalikan JSON ke Frontend untuk ditampilkan di Form
-        res.status(200).json({
-            message: "Analisa berhasil. Silakan konfirmasi.",
-            data: parsedData 
-        });
-
+        // Nanti user_id ini diambil dari token login. 
+        // Untuk sekarang kita ambil dari query params atau hardcode 1 (dummy user)
+        const userId = req.query.user_id || 1; 
+        
+        const tasks = await taskModel.getAllByUserId(userId);
+        res.json({ data: tasks });
     } catch (error) {
-        res.status(500).json({ message: "Gagal menganalisa teks: " + error.message });
+        res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
 
-// 2. Endpoint B: Simpan Data Final (Manual atau Hasil AI)
-// Route: POST /api/tasks
+// 2. CREATE TASK (Manual Input & Save AI Result)
 const createTask = async (req, res) => {
     try {
-        // Data ini dikirim oleh Frontend setelah User klik "Simpan"
-        const { user_id, title, subject, deadline, priority_level, description } = req.body;
+        const { user_id, title, subject, description, deadline, priority_level } = req.body;
 
-        // Validasi Sederhana
+        // Validasi sederhana
         if (!title || !deadline) {
-            return res.status(400).json({ message: "Judul dan Deadline wajib diisi." });
+            return res.status(400).json({ message: "Judul dan Deadline wajib diisi" });
         }
 
-        // Simpan ke Database (MySQL)
-        const taskId = await taskModel.create({
-            user_id,
-            title,
-            subject,
-            deadline, // Pastikan format YYYY-MM-DD HH:mm:ss dari frontend
-            priority_level,
-            description
+        const newId = await taskModel.create({
+            user_id: user_id || 1, // Default ke user 1 jika tidak ada
+            title, 
+            subject, 
+            description, 
+            deadline, 
+            priority_level: priority_level || 'schedule'
         });
 
-        res.status(201).json({
-            message: "Tugas berhasil disimpan!",
-            task_id: taskId
+        res.status(201).json({ 
+            message: "Tugas berhasil dibuat", 
+            task_id: newId 
         });
-
     } catch (error) {
-        res.status(500).json({ message: "Database Error: " + error.message });
+        res.status(500).json({ message: "Gagal membuat tugas", error: error.message });
     }
 };
 
-module.exports = { analyzeText, createTask };
+// 3. UPDATE TASK
+const updateTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, subject, description, deadline, priority_level, is_completed } = req.body;
+
+        const affected = await taskModel.update(id, { 
+            title, subject, description, deadline, priority_level, is_completed 
+        });
+
+        if (affected === 0) {
+            return res.status(404).json({ message: "Tugas tidak ditemukan" });
+        }
+
+        res.json({ message: "Tugas berhasil diupdate" });
+    } catch (error) {
+        res.status(500).json({ message: "Gagal update tugas", error: error.message });
+    }
+};
+
+// 4. DELETE TASK
+const deleteTask = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const affected = await taskModel.delete(id);
+
+        if (affected === 0) {
+            return res.status(404).json({ message: "Tugas tidak ditemukan" });
+        }
+
+        res.json({ message: "Tugas berhasil dihapus" });
+    } catch (error) {
+        res.status(500).json({ message: "Gagal hapus tugas", error: error.message });
+    }
+};
+
+module.exports = {
+    getTasks,
+    createTask,
+    updateTask,
+    deleteTask
+};
