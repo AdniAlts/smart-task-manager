@@ -1,32 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../config/database');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('./emailService');
 const TelegramBot = require('node-telegram-bot-api');
-
-// Setup Email Transporter
-const getTransporter = () => {
-    const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-    const emailPort = parseInt(process.env.EMAIL_PORT || '465');
-    const isSecure = emailPort === 465;
-
-    return nodemailer.createTransport({
-        host: emailHost,
-        port: emailPort,
-        secure: isSecure,
-        auth: { 
-            user: process.env.EMAIL_USER, 
-            pass: process.env.EMAIL_PASS 
-        },
-        // Force IPv4
-        family: 4,
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        socketTimeout: 30000,
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-};
 
 // Setup Telegram Bot
 const getBot = () => {
@@ -141,11 +116,9 @@ const sendNotification = async (user, task, hoursRemaining) => {
             console.log(`✅ Telegram sent to ${user.telegram_chat_id} for task: ${task.title}`);
         }
 
-        // Kirim Email (hanya jika enabled dan ada email)
+        // Kirim Email via Resend (hanya jika enabled dan ada email)
         if (user.email_enabled && user.email) {
-            const transporter = getTransporter();
-            await transporter.sendMail({
-                from: `TaskMind <${process.env.EMAIL_USER}>`,
+            await sendEmail({
                 to: user.email,
                 subject: emailSubject,
                 html: emailHtml
