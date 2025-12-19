@@ -3,28 +3,28 @@ const db = require('../config/database');
 const TaskModel = {
     // Ambil semua tugas milik user tertentu
     getAllByUserId: async (userId) => {
-        const result = await db.query(
-            'SELECT * FROM tasks WHERE user_id = $1 ORDER BY deadline ASC', 
+        const [rows] = await db.query(
+            'SELECT * FROM tasks WHERE user_id = ? ORDER BY deadline ASC', 
             [userId]
         );
-        return result.rows;
+        return rows;
     },
 
     // Ambil detail satu tugas (untuk keperluan edit/detail)
     getById: async (id) => {
-        const result = await db.query('SELECT * FROM tasks WHERE id = $1', [id]);
-        return result.rows[0];
+        const [rows] = await db.query('SELECT * FROM tasks WHERE id = ?', [id]);
+        return rows[0];
     },
 
     // Tambah tugas baru
     create: async (data) => {
         const { user_id, title, subject, description, deadline, priority_level } = data;
-        const result = await db.query(
+        const [result] = await db.query(
             `INSERT INTO tasks (user_id, title, subject, description, deadline, priority_level) 
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+             VALUES (?, ?, ?, ?, ?, ?)`,
             [user_id, title, subject, description, deadline, priority_level]
         );
-        return result.rows[0].id;
+        return result.insertId;
     },
 
     // Update tugas - only update fields that are provided
@@ -32,30 +32,29 @@ const TaskModel = {
         // Build dynamic update query based on provided fields
         const fields = [];
         const values = [];
-        let paramCount = 1;
         
         if (data.title !== undefined) {
-            fields.push(`title = $${paramCount++}`);
+            fields.push('title = ?');
             values.push(data.title);
         }
         if (data.subject !== undefined) {
-            fields.push(`subject = $${paramCount++}`);
+            fields.push('subject = ?');
             values.push(data.subject);
         }
         if (data.description !== undefined) {
-            fields.push(`description = $${paramCount++}`);
+            fields.push('description = ?');
             values.push(data.description);
         }
         if (data.deadline !== undefined) {
-            fields.push(`deadline = $${paramCount++}`);
+            fields.push('deadline = ?');
             values.push(data.deadline);
         }
         if (data.priority_level !== undefined) {
-            fields.push(`priority_level = $${paramCount++}`);
+            fields.push('priority_level = ?');
             values.push(data.priority_level);
         }
         if (data.is_completed !== undefined) {
-            fields.push(`is_completed = $${paramCount++}`);
+            fields.push('is_completed = ?');
             values.push(data.is_completed);
         }
         
@@ -65,17 +64,17 @@ const TaskModel = {
         
         values.push(id);
         
-        const result = await db.query(
-            `UPDATE tasks SET ${fields.join(', ')} WHERE id = $${paramCount}`,
+        const [result] = await db.query(
+            `UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`,
             values
         );
-        return result.rowCount;
+        return result.affectedRows;
     },
 
     // Hapus tugas
     delete: async (id) => {
-        const result = await db.query('DELETE FROM tasks WHERE id = $1', [id]);
-        return result.rowCount;
+        const [result] = await db.query('DELETE FROM tasks WHERE id = ?', [id]);
+        return result.affectedRows;
     }
 };
 
