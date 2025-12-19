@@ -40,11 +40,15 @@ app.get('/', (req, res) => {
     res.send('TaskMind API is Running! 🚀');
 });
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
+// Start Server - bind to 0.0.0.0 for Railway
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server running on port ${PORT}`);
     console.log('Scheduler (Cron Job) aktif di background...');
     
     // Initialize scheduler for automatic notifications
-    initScheduler();
+    try {
+        initScheduler();
+    } catch (err) {
+        console.error('❌ Scheduler error:', err.message);
+    }
 });
