@@ -99,7 +99,7 @@ export default function TaskCard({ task, onViewDetail, onEdit }) {
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 
-                       opacity-0 group-hover:opacity-100 transition-opacity"
+                       opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
           >
             <MoreVertical className="w-4 h-4" />
           </button>

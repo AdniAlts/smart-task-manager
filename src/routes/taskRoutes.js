@@ -25,7 +25,10 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
         // Setup Transporter Email
         const transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+            connectionTimeout: 10000, // 10s timeout
+            greetingTimeout: 10000,
+            socketTimeout: 10000
         });
 
         // Setup Telegram
@@ -35,30 +38,47 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
         const [users] = await pool.query("SELECT email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = ?", [userId]);
         const user = users[0];
 
-        let sentTo = [];
+        const promises = [];
 
         // 1. Test Kirim Email (if enabled)
         if (user.email_enabled && user.email) {
-            await transporter.sendMail({
-                from: 'TaskMind',
-                to: user.email,
-                subject: '🔔 Test Notifikasi Server',
-                text: 'Halo! Jika email ini masuk, berarti settingan SMTP Gmail berhasil.'
-            });
-            sentTo.push('Email');
+            promises.push(
+                transporter.sendMail({
+                    from: 'TaskMind',
+                    to: user.email,
+                    subject: '🔔 Test Notifikasi Server',
+                    text: 'Halo! Jika email ini masuk, berarti settingan SMTP Gmail berhasil.'
+                }).then(() => 'Email').catch(e => { throw new Error(`Email failed: ${e.message}`) })
+            );
         }
 
         // 2. Test Kirim Telegram (if enabled)
         if (user.telegram_enabled && user.telegram_chat_id) {
-            await bot.sendMessage(user.telegram_chat_id, "🔔 *Test Notifikasi*\nBot Telegram berhasil terhubung!", { parse_mode: 'Markdown' });
-            sentTo.push('Telegram');
+            promises.push(
+                bot.sendMessage(user.telegram_chat_id, "🔔 *Test Notifikasi*\nBot Telegram berhasil terhubung!", { parse_mode: 'Markdown' })
+                .then(() => 'Telegram').catch(e => { throw new Error(`Telegram failed: ${e.message}`) })
+            );
         }
 
-        if (sentTo.length === 0) {
+        if (promises.length === 0) {
             return res.json({ message: "Tidak ada notifikasi yang dikirim. Pastikan Telegram/Email diaktifkan." });
         }
 
-        res.json({ message: `Notifikasi test berhasil dikirim ke: ${sentTo.join(', ')}` });
+        const results = await Promise.allSettled(promises);
+        const sentTo = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+        const errors = results.filter(r => r.status === 'rejected').map(r => r.reason.message);
+
+        if (sentTo.length > 0) {
+            res.json({ 
+                message: `Notifikasi test berhasil dikirim ke: ${sentTo.join(', ')}`,
+                errors: errors.length > 0 ? errors : undefined
+            });
+        } else {
+            res.status(500).json({ 
+                message: "Gagal mengirim notifikasi", 
+                errors 
+            });
+        }
 
     } catch (error) {
         console.error(error);
