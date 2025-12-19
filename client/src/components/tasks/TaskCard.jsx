@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Check, Trash2, Clock, BookOpen, MoreVertical, Eye, Edit } from 'lucide-react';
-import { PriorityBadge, SubjectBadge } from '../ui/Badge';
+import { PriorityBadge, SubjectBadge, LateBadge } from '../ui/Badge';
 import { useTask } from '../../context/TaskContext';
 
 export default function TaskCard({ task, onViewDetail, onEdit }) {
@@ -79,6 +79,7 @@ export default function TaskCard({ task, onViewDetail, onEdit }) {
           
           {/* Meta Info */}
           <div className="flex flex-wrap items-center gap-2 mt-2">
+            {isOverdue() && <LateBadge />}
             <PriorityBadge priority={task.priority_level} />
             {task.subject && <SubjectBadge subject={task.subject} />}
           </div>
