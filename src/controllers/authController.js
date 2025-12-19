@@ -363,7 +363,7 @@ const forgotPassword = async (req, res) => {
                         <p style="color: #f1f5f9;">Hi <strong>${user.username}</strong>,</p>
                         <p style="color: #94a3b8;">You requested to reset your password. Use the code below:</p>
                         <div style="text-align: center; margin: 20px 0;">
-                            <span style="font-size: 32px; font-weight: bold; color: #8b5cf6; letter-spacing: 4px; background: #1e293b; padding: 15px 30px; border-radius: 8px;">${resetCode}</span>
+                            <span style="font-size: 24px; font-weight: bold; color: #8b5cf6; letter-spacing: 4px; background: #1e293b; padding: 15px 30px; border-radius: 8px;">${resetCode}</span>
                         </div>
                         <p style="color: #94a3b8; font-size: 12px;">This code expires in 1 hour.</p>
                     </div>

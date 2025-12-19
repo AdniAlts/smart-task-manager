@@ -96,3 +96,13 @@ export function StatusBadge({ isCompleted }) {
     </span>
   );
 }
+
+export function LateBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
+                     bg-red-600/20 border border-red-500/50 text-red-400 animate-pulse">
+      <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+      Late
+    </span>
+  );
+}
