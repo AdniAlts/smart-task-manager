@@ -4,7 +4,7 @@ const taskController = require('../controllers/taskController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 const pool = require('../config/database');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../services/emailService');
 const TelegramBot = require('node-telegram-bot-api');
 
 // Base URL: /api/tasks
@@ -21,34 +21,6 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
     try {
         // Get current user from token
         const userId = req.user.id;
-        
-        // Setup Transporter Email
-        const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-        const emailPort = parseInt(process.env.EMAIL_PORT || '465');
-        const isSecure = emailPort === 465; // True for 465, False for 587
-
-        console.log(`📧 Configuring SMTP: ${emailHost}:${emailPort} (Secure: ${isSecure})`);
-
-        // Use 'service: gmail' as a fallback if manual config fails, or just use it directly
-        // But since we want to support custom envs, let's stick to manual but with better defaults
-        const transporter = nodemailer.createTransport({
-            host: emailHost,
-            port: emailPort,
-            secure: isSecure,
-            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-            // Force IPv4 to avoid Railway IPv6 resolution issues
-            family: 4,
-            connectionTimeout: 30000, // Increased to 30s
-            greetingTimeout: 30000,
-            socketTimeout: 30000,
-            // Add TLS options to be more permissive if needed
-            tls: {
-                rejectUnauthorized: false,
-                ciphers: 'SSLv3'
-            },
-            logger: true,
-            debug: true
-        });
 
         // Setup Telegram
         const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
@@ -59,18 +31,24 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
 
         const promises = [];
 
-        // 1. Test Kirim Email (if enabled)
+        // 1. Test Kirim Email via Resend API (if enabled)
         if (user.email_enabled && user.email) {
-            console.log(`📧 Attempting to send email to ${user.email}...`);
+            console.log(`📧 Attempting to send email to ${user.email} via Resend...`);
             promises.push(
-                transporter.sendMail({
-                    from: `TaskMind <${process.env.EMAIL_USER}>`,
+                sendEmail({
                     to: user.email,
                     subject: '🔔 Test Notifikasi Server',
-                    text: 'Halo! Jika email ini masuk, berarti settingan SMTP Gmail berhasil.'
+                    text: 'Halo! Jika email ini masuk, berarti settingan email berhasil.',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #1e293b; color: #f1f5f9; border-radius: 12px;">
+                            <h1 style="color: #8b5cf6;">🔔 Test Notifikasi</h1>
+                            <p>Halo! Jika email ini masuk, berarti settingan email berhasil.</p>
+                            <p style="color: #64748b; font-size: 12px;">— TaskMind</p>
+                        </div>
+                    `
                 })
                 .then(() => {
-                    console.log('✅ Email sent successfully');
+                    console.log('✅ Email sent successfully via Resend');
                     return 'Email';
                 })
                 .catch(e => { 
