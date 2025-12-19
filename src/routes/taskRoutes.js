@@ -42,13 +42,22 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
 
         // 1. Test Kirim Email (if enabled)
         if (user.email_enabled && user.email) {
+            console.log(`📧 Attempting to send email to ${user.email}...`);
             promises.push(
                 transporter.sendMail({
-                    from: 'TaskMind',
+                    from: `TaskMind <${process.env.EMAIL_USER}>`,
                     to: user.email,
                     subject: '🔔 Test Notifikasi Server',
                     text: 'Halo! Jika email ini masuk, berarti settingan SMTP Gmail berhasil.'
-                }).then(() => 'Email').catch(e => { throw new Error(`Email failed: ${e.message}`) })
+                })
+                .then(() => {
+                    console.log('✅ Email sent successfully');
+                    return 'Email';
+                })
+                .catch(e => { 
+                    console.error('❌ Email failed:', e);
+                    throw new Error(`Email failed: ${e.message}`);
+                })
             );
         }
 

@@ -134,7 +134,7 @@ const sendNotification = async (user, task, hoursRemaining) => {
         if (user.email_enabled && user.email) {
             const transporter = getTransporter();
             await transporter.sendMail({
-                from: 'TaskMind <noreply@taskmind.com>',
+                from: `TaskMind <${process.env.EMAIL_USER}>`,
                 to: user.email,
                 subject: emailSubject,
                 html: emailHtml
