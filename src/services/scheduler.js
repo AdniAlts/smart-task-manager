@@ -173,11 +173,15 @@ const checkAndNotifyDeadlines = async () => {
 
         const now = new Date();
         
-        console.log(`📋 Found ${tasks.length} upcoming tasks to check`);
+        // Adjust for timezone (GMT+7) - Server is UTC, DB is Local Time (WIB)
+        const TIMEZONE_OFFSET = parseInt(process.env.TIMEZONE_OFFSET || '7');
+        const nowInUserTime = new Date(now.getTime() + (TIMEZONE_OFFSET * 60 * 60 * 1000));
+
+        console.log(`📋 Found ${tasks.length} upcoming tasks to check (Offset: ${TIMEZONE_OFFSET}h)`);
         
         for (const task of tasks) {
             const deadline = new Date(task.deadline);
-            const msUntilDeadline = deadline - now;
+            const msUntilDeadline = deadline - nowInUserTime;
             const hoursUntilDeadline = msUntilDeadline / (1000 * 60 * 60);
             
             console.log(`📝 Task "${task.title}" - Deadline: ${deadline.toLocaleString()}, Hours until: ${hoursUntilDeadline.toFixed(2)}`);
