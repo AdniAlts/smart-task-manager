@@ -156,15 +156,17 @@ const checkAndNotifyDeadlines = async () => {
         // Ambil semua task yang belum selesai dengan deadline dalam 25 jam ke depan
         // (25 jam untuk memastikan 24 jam dan 1 jam reminder tercakup)
         // Hanya ambil task dari user yang punya notifikasi enabled
-        const [tasks] = await pool.query(`
+        const result = await pool.query(`
             SELECT t.*, u.email, u.telegram_chat_id, u.telegram_enabled, u.email_enabled
             FROM tasks t
             JOIN users u ON t.user_id = u.id
             WHERE t.is_completed = FALSE 
             AND t.deadline IS NOT NULL
-            AND t.deadline BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 25 HOUR)
+            AND t.deadline BETWEEN NOW() AND NOW() + INTERVAL '25 hours'
             AND (u.telegram_enabled = TRUE OR u.email_enabled = TRUE)
         `);
+
+        const tasks = result.rows;
 
         if (tasks.length === 0) {
             console.log('📭 No upcoming deadlines to notify');
@@ -217,7 +219,7 @@ const checkAndNotifyDeadlines = async () => {
                 
                 // Update flag notifikasi di database
                 const updateField = notificationType === '24h' ? 'notified_24h' : 'notified_1h';
-                await pool.query(`UPDATE tasks SET ${updateField} = TRUE WHERE id = ?`, [task.id]);
+                await pool.query(`UPDATE tasks SET ${updateField} = TRUE WHERE id = $1`, [task.id]);
                 console.log(`📝 Updated ${updateField} flag for task ${task.id}`);
             }
         }
