@@ -129,6 +129,20 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem('token');
   };
 
+  // Delete Account
+  const deleteAccount = async () => {
+    try {
+      await api.delete('/auth/delete');
+      logout();
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Failed to delete account' 
+      };
+    }
+  };
+
   // Update user data after settings change
   const updateUser = (newUserData) => {
     setUser(prev => ({ ...prev, ...newUserData }));
@@ -142,6 +156,7 @@ export function AuthProvider({ children }) {
     register,
     login,
     logout,
+    deleteAccount,
     updateUser,
     fetchUser
   };

@@ -55,6 +55,7 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   getMe: () => api.get('/auth/me'),
   updateSettings: (data) => api.put('/auth/settings', data),
+  deleteAccount: () => api.delete('/auth/delete'),
 };
 
 export default api;
