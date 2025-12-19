@@ -31,9 +31,9 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
 
         const promises = [];
 
-        // 1. Test Kirim Email via Resend API (if enabled)
+        // 1. Test Kirim Email via Brevo API (if enabled)
         if (user.email_enabled && user.email) {
-            console.log(`📧 Attempting to send email to ${user.email} via Resend...`);
+            console.log(`📧 Attempting to send email to ${user.email} via Brevo...`);
             promises.push(
                 sendEmail({
                     to: user.email,
@@ -48,7 +48,7 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
                     `
                 })
                 .then(() => {
-                    console.log('✅ Email sent successfully via Resend');
+                    console.log('✅ Email sent successfully via Brevo');
                     return 'Email';
                 })
                 .catch(e => { 

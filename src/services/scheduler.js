@@ -116,7 +116,7 @@ const sendNotification = async (user, task, hoursRemaining) => {
             console.log(`✅ Telegram sent to ${user.telegram_chat_id} for task: ${task.title}`);
         }
 
-        // Kirim Email via Resend (hanya jika enabled dan ada email)
+        // Kirim Email via Brevo (hanya jika enabled dan ada email)
         if (user.email_enabled && user.email) {
             await sendEmail({
                 to: user.email,
