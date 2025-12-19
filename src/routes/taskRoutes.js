@@ -29,6 +29,8 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
 
         console.log(`📧 Configuring SMTP: ${emailHost}:${emailPort} (Secure: ${isSecure})`);
 
+        // Use 'service: gmail' as a fallback if manual config fails, or just use it directly
+        // But since we want to support custom envs, let's stick to manual but with better defaults
         const transporter = nodemailer.createTransport({
             host: emailHost,
             port: emailPort,
@@ -39,6 +41,11 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
             connectionTimeout: 30000, // Increased to 30s
             greetingTimeout: 30000,
             socketTimeout: 30000,
+            // Add TLS options to be more permissive if needed
+            tls: {
+                rejectUnauthorized: false,
+                ciphers: 'SSLv3'
+            },
             logger: true,
             debug: true
         });

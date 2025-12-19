@@ -8,6 +8,7 @@ import {
   User, 
   Send,
   LogOut,
+  Trash2,
   Mail,
   MessageCircle,
   Save,
@@ -23,7 +24,7 @@ import api from '../services/api';
 
 export default function Settings() {
   const { testNotification } = useTask();
-  const { user, logout, updateUser, fetchUser } = useAuth();
+  const { user, logout, deleteAccount, updateUser, fetchUser } = useAuth();
   const navigate = useNavigate();
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -520,6 +521,35 @@ export default function Settings() {
           >
             <LogOut className="w-4 h-4" />
             Logout
+          </Button>
+        </div>
+      </div>
+
+      {/* Delete Account Section */}
+      <div className="p-5 bg-rose-900/10 rounded-xl border border-rose-900/30 mt-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-rose-500/20 rounded-lg flex items-center justify-center">
+              <Trash2 className="w-5 h-5 text-rose-500" />
+            </div>
+            <div>
+              <p className="font-medium text-rose-400">Delete Account</p>
+              <p className="text-xs text-rose-300/70">Permanently delete your account and all data</p>
+            </div>
+          </div>
+          <Button 
+            variant="danger"
+            size="sm"
+            onClick={async () => {
+              if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                const result = await deleteAccount();
+                if (!result.success) {
+                  toast.error(result.message);
+                }
+              }
+            }}
+          >
+            Delete Account
           </Button>
         </div>
       </div>

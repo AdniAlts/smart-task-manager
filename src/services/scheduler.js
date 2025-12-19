@@ -6,8 +6,8 @@ const TelegramBot = require('node-telegram-bot-api');
 // Setup Email Transporter
 const getTransporter = () => {
     const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-    const emailPort = parseInt(process.env.EMAIL_PORT || '587');
-    const isSecure = emailPort === 587;
+    const emailPort = parseInt(process.env.EMAIL_PORT || '465');
+    const isSecure = emailPort === 465;
 
     return nodemailer.createTransport({
         host: emailHost,
@@ -21,7 +21,10 @@ const getTransporter = () => {
         family: 4,
         connectionTimeout: 30000,
         greetingTimeout: 30000,
-        socketTimeout: 30000
+        socketTimeout: 30000,
+        tls: {
+            rejectUnauthorized: false
+        }
     });
 };
 

@@ -443,4 +443,26 @@ const resetPassword = async (req, res) => {
     }
 };
 
-module.exports = { register, login, getMe, updateSettings, updateProfile, changePassword, forgotPassword, resetPassword };
+// Delete Account
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // 1. Delete all tasks associated with the user
+        await pool.query('DELETE FROM tasks WHERE user_id = ?', [userId]);
+
+        // 2. Delete the user account
+        const [result] = await pool.query('DELETE FROM users WHERE id = ?', [userId]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        console.error('Delete account error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+module.exports = { register, login, getMe, updateSettings, updateProfile, changePassword, forgotPassword, resetPassword, deleteAccount };
