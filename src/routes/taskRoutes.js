@@ -23,12 +23,22 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
         const userId = req.user.id;
         
         // Setup Transporter Email
+        const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
+        const emailPort = parseInt(process.env.EMAIL_PORT || '465');
+        const isSecure = emailPort === 465; // True for 465, False for 587
+
+        console.log(`📧 Configuring SMTP: ${emailHost}:${emailPort} (Secure: ${isSecure})`);
+
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: emailHost,
+            port: emailPort,
+            secure: isSecure,
             auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-            connectionTimeout: 10000, // 10s timeout
+            connectionTimeout: 10000,
             greetingTimeout: 10000,
-            socketTimeout: 10000
+            socketTimeout: 10000,
+            logger: true, // Log to console
+            debug: true   // Include debug info
         });
 
         // Setup Telegram
