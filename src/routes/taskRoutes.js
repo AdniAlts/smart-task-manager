@@ -34,11 +34,13 @@ router.post('/test-notify', authMiddleware, async (req, res) => {
             port: emailPort,
             secure: isSecure,
             auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 10000,
-            logger: true, // Log to console
-            debug: true   // Include debug info
+            // Force IPv4 to avoid Railway IPv6 resolution issues
+            family: 4,
+            connectionTimeout: 30000, // Increased to 30s
+            greetingTimeout: 30000,
+            socketTimeout: 30000,
+            logger: true,
+            debug: true
         });
 
         // Setup Telegram
