@@ -3,9 +3,15 @@ const mysql = require('mysql2/promise');
 // Railway MySQL provides MYSQL_URL or individual variables
 const getDatabaseConfig = () => {
     // If Railway provides a full URL (recommended)
+    // Format: mysql://user:password@host:port/database
     if (process.env.MYSQL_URL) {
+        const url = new URL(process.env.MYSQL_URL);
         return {
-            uri: process.env.MYSQL_URL,
+            host: url.hostname,
+            port: parseInt(url.port) || 3306,
+            user: url.username,
+            password: url.password,
+            database: url.pathname.slice(1), // Remove leading /
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0
@@ -16,7 +22,7 @@ const getDatabaseConfig = () => {
     if (process.env.MYSQL_HOST) {
         return {
             host: process.env.MYSQL_HOST,
-            port: process.env.MYSQL_PORT || 3306,
+            port: parseInt(process.env.MYSQL_PORT) || 3306,
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
             database: process.env.MYSQL_DATABASE,
