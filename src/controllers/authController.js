@@ -17,12 +17,12 @@ const register = async (req, res) => {
         }
 
         // Check if email already exists
-        const existingUsers = await pool.query(
-            'SELECT id FROM users WHERE email = $1', 
+        const [existingUsers] = await pool.query(
+            'SELECT id FROM users WHERE email = ?', 
             [email]
         );
 
-        if (existingUsers.rows.length > 0) {
+        if (existingUsers.length > 0) {
             return res.status(400).json({ 
                 message: 'Email already registered' 
             });
@@ -33,31 +33,29 @@ const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Insert new user
-        const result = await pool.query(
+        const [result] = await pool.query(
             `INSERT INTO users (username, email, password_hash, telegram_chat_id, telegram_enabled, email_enabled) 
-             VALUES ($1, $2, $3, $4, TRUE, TRUE) RETURNING id`,
+             VALUES (?, ?, ?, ?, TRUE, TRUE)`,
             [name, email, hashedPassword, telegram_chat_id || null]
         );
 
-        const newUserId = result.rows[0].id;
-
         // Generate token
         const token = jwt.sign(
-            { id: newUserId, email },
+            { id: result.insertId, email },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
 
         // Get user data (without password)
-        const users = await pool.query(
-            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = $1',
-            [newUserId]
+        const [users] = await pool.query(
+            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = ?',
+            [result.insertId]
         );
 
         res.status(201).json({
             message: 'Registration successful',
             data: {
-                user: users.rows[0],
+                user: users[0],
                 token
             }
         });
@@ -81,18 +79,18 @@ const login = async (req, res) => {
         }
 
         // Find user
-        const users = await pool.query(
-            'SELECT * FROM users WHERE email = $1',
+        const [users] = await pool.query(
+            'SELECT * FROM users WHERE email = ?',
             [email]
         );
 
-        if (users.rows.length === 0) {
+        if (users.length === 0) {
             return res.status(401).json({ 
                 message: 'Invalid email or password' 
             });
         }
 
-        const user = users.rows[0];
+        const user = users[0];
 
         // Check password
         const isMatch = await bcrypt.compare(password, user.password_hash);
@@ -130,18 +128,18 @@ const login = async (req, res) => {
 // Get current user
 const getMe = async (req, res) => {
     try {
-        const users = await pool.query(
-            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = $1',
+        const [users] = await pool.query(
+            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = ?',
             [req.user.id]
         );
 
-        if (users.rows.length === 0) {
+        if (users.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
 
         res.json({
             message: 'User data retrieved',
-            data: users.rows[0]
+            data: users[0]
         });
 
     } catch (error) {
@@ -157,18 +155,17 @@ const updateSettings = async (req, res) => {
         
         const updates = [];
         const values = [];
-        let paramCount = 1;
 
         if (telegram_enabled !== undefined) {
-            updates.push(`telegram_enabled = $${paramCount++}`);
+            updates.push('telegram_enabled = ?');
             values.push(telegram_enabled);
         }
         if (email_enabled !== undefined) {
-            updates.push(`email_enabled = $${paramCount++}`);
+            updates.push('email_enabled = ?');
             values.push(email_enabled);
         }
         if (telegram_chat_id !== undefined) {
-            updates.push(`telegram_chat_id = $${paramCount++}`);
+            updates.push('telegram_chat_id = ?');
             values.push(telegram_chat_id);
         }
 
@@ -179,19 +176,19 @@ const updateSettings = async (req, res) => {
         values.push(req.user.id);
 
         await pool.query(
-            `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}`,
+            `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
             values
         );
 
         // Get updated user
-        const users = await pool.query(
-            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = $1',
+        const [users] = await pool.query(
+            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = ?',
             [req.user.id]
         );
 
         res.json({
             message: 'Settings updated successfully',
-            data: users.rows[0]
+            data: users[0]
         });
 
     } catch (error) {
@@ -207,26 +204,25 @@ const updateProfile = async (req, res) => {
         
         const updates = [];
         const values = [];
-        let paramCount = 1;
 
         if (name !== undefined && name.trim()) {
-            updates.push(`username = $${paramCount++}`);
+            updates.push('username = ?');
             values.push(name.trim());
         }
         if (email !== undefined && email.trim()) {
             // Check if email is already used by another user
-            const existingUsers = await pool.query(
-                'SELECT id FROM users WHERE email = $1 AND id != $2',
+            const [existingUsers] = await pool.query(
+                'SELECT id FROM users WHERE email = ? AND id != ?',
                 [email, req.user.id]
             );
-            if (existingUsers.rows.length > 0) {
+            if (existingUsers.length > 0) {
                 return res.status(400).json({ message: 'Email already used by another account' });
             }
-            updates.push(`email = $${paramCount++}`);
+            updates.push('email = ?');
             values.push(email.trim());
         }
         if (telegram_chat_id !== undefined) {
-            updates.push(`telegram_chat_id = $${paramCount++}`);
+            updates.push('telegram_chat_id = ?');
             values.push(telegram_chat_id || null);
         }
 
@@ -237,19 +233,19 @@ const updateProfile = async (req, res) => {
         values.push(req.user.id);
 
         await pool.query(
-            `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}`,
+            `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
             values
         );
 
         // Get updated user
-        const users = await pool.query(
-            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = $1',
+        const [users] = await pool.query(
+            'SELECT id, username as name, email, telegram_chat_id, telegram_enabled, email_enabled FROM users WHERE id = ?',
             [req.user.id]
         );
 
         res.json({
             message: 'Profile updated successfully',
-            data: users.rows[0]
+            data: users[0]
         });
 
     } catch (error) {
@@ -272,17 +268,17 @@ const changePassword = async (req, res) => {
         }
 
         // Get user with password
-        const users = await pool.query(
-            'SELECT password_hash FROM users WHERE id = $1',
+        const [users] = await pool.query(
+            'SELECT password_hash FROM users WHERE id = ?',
             [req.user.id]
         );
 
-        if (users.rows.length === 0) {
+        if (users.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
 
         // Verify current password
-        const isMatch = await bcrypt.compare(currentPassword, users.rows[0].password_hash);
+        const isMatch = await bcrypt.compare(currentPassword, users[0].password_hash);
         if (!isMatch) {
             return res.status(401).json({ message: 'Current password is incorrect' });
         }
@@ -293,7 +289,7 @@ const changePassword = async (req, res) => {
 
         // Update password
         await pool.query(
-            'UPDATE users SET password_hash = $1 WHERE id = $2',
+            'UPDATE users SET password_hash = ? WHERE id = ?',
             [hashedPassword, req.user.id]
         );
 
@@ -315,17 +311,17 @@ const forgotPassword = async (req, res) => {
         }
 
         // Find user
-        const users = await pool.query(
-            'SELECT id, username, email FROM users WHERE email = $1',
+        const [users] = await pool.query(
+            'SELECT id, username, email FROM users WHERE email = ?',
             [email]
         );
 
-        if (users.rows.length === 0) {
+        if (users.length === 0) {
             // Don't reveal if email exists for security
             return res.json({ message: 'If the email exists, a reset link has been sent' });
         }
 
-        const user = users.rows[0];
+        const user = users[0];
 
         // Generate reset token (valid for 1 hour)
         const resetToken = jwt.sign(
@@ -349,7 +345,7 @@ const forgotPassword = async (req, res) => {
         
         // Store reset code temporarily (we'll use the token's last 8 chars as verification)
         await pool.query(
-            'UPDATE users SET reset_token = $1 WHERE id = $2',
+            'UPDATE users SET reset_token = ? WHERE id = ?',
             [resetToken, user.id]
         );
 
@@ -406,16 +402,16 @@ const resetPassword = async (req, res) => {
         }
 
         // Find user with reset token
-        const users = await pool.query(
-            'SELECT id, reset_token FROM users WHERE email = $1',
+        const [users] = await pool.query(
+            'SELECT id, reset_token FROM users WHERE email = ?',
             [email]
         );
 
-        if (users.rows.length === 0 || !users.rows[0].reset_token) {
+        if (users.length === 0 || !users[0].reset_token) {
             return res.status(400).json({ message: 'Invalid or expired reset code' });
         }
 
-        const user = users.rows[0];
+        const user = users[0];
 
         // Verify reset code (last 8 chars of token)
         if (user.reset_token.slice(-8).toUpperCase() !== resetCode.toUpperCase()) {
@@ -435,7 +431,7 @@ const resetPassword = async (req, res) => {
 
         // Update password and clear reset token
         await pool.query(
-            'UPDATE users SET password_hash = $1, reset_token = NULL WHERE id = $2',
+            'UPDATE users SET password_hash = ?, reset_token = NULL WHERE id = ?',
             [hashedPassword, user.id]
         );
 

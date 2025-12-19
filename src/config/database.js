@@ -1,27 +1,23 @@
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 
-// Support both DATABASE_URL (Railway) and individual env vars (local)
-const pool = process.env.DATABASE_URL
-    ? new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    })
-    : new Pool({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        port: process.env.DB_PORT || 5432,
-    });
+const pool = mysql.createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
-// Test connection on startup
-pool.connect()
-    .then(client => {
-        console.log("✅ PostgreSQL connected successfully!");
-        client.release();
+// Cek koneksi saat file ini dimuat pertama kali
+pool.getConnection()
+    .then(conn => {
+        console.log("✅ Database connected successfully!");
+        conn.release();
     })
     .catch(err => {
-        console.error("❌ PostgreSQL connection failed:", err.message);
+        console.error("❌ Database connection failed:", err.message);
     });
 
 module.exports = pool;
