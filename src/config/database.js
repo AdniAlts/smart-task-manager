@@ -2,11 +2,12 @@ const mysql = require('mysql2/promise');
 
 console.log('🔍 Loading database config...');
 console.log('  MYSQL_HOST:', process.env.MYSQL_HOST || 'not set');
+console.log('  MYSQLHOST:', process.env.MYSQLHOST || 'not set');
 console.log('  DB_HOST:', process.env.DB_HOST || 'not set');
 
-// Railway MySQL provides MYSQL_URL or individual variables
+// Railway MySQL provides variables (with or without underscore)
 const getDatabaseConfig = () => {
-    // Railway MySQL individual variables (preferred)
+    // Railway MySQL individual variables (with underscore: MYSQL_HOST)
     if (process.env.MYSQL_HOST) {
         console.log('📦 Using MYSQL_HOST config');
         return {
@@ -15,6 +16,21 @@ const getDatabaseConfig = () => {
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
             database: process.env.MYSQL_DATABASE,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0
+        };
+    }
+    
+    // Railway MySQL individual variables (without underscore: MYSQLHOST)
+    if (process.env.MYSQLHOST) {
+        console.log('📦 Using MYSQLHOST config (no underscore)');
+        return {
+            host: process.env.MYSQLHOST,
+            port: parseInt(process.env.MYSQLPORT) || 3306,
+            user: process.env.MYSQLUSER,
+            password: process.env.MYSQLPASSWORD,
+            database: process.env.MYSQLDATABASE,
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0
