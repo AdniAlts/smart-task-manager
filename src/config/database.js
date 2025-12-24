@@ -18,7 +18,8 @@ const getDatabaseConfig = () => {
             database: process.env.MYSQL_DATABASE,
             waitForConnections: true,
             connectionLimit: 10,
-            queueLimit: 0
+            queueLimit: 0,
+            timezone: '+07:00'
         };
     }
     
@@ -33,7 +34,8 @@ const getDatabaseConfig = () => {
             database: process.env.MYSQLDATABASE,
             waitForConnections: true,
             connectionLimit: 10,
-            queueLimit: 0
+            queueLimit: 0,
+            timezone: '+07:00'
         };
     }
     
@@ -51,7 +53,8 @@ const getDatabaseConfig = () => {
                 database: url.pathname.slice(1), // Remove leading /
                 waitForConnections: true,
                 connectionLimit: 10,
-                queueLimit: 0
+                queueLimit: 0,
+                timezone: '+07:00'
             };
         } catch (err) {
             console.error('❌ Failed to parse MYSQL_URL:', err.message);
@@ -68,7 +71,8 @@ const getDatabaseConfig = () => {
         database: process.env.DB_NAME || 'smart_task_manager',
         waitForConnections: true,
         connectionLimit: 10,
-        queueLimit: 0
+        queueLimit: 0,
+        timezone: '+07:00'
     };
 };
 
