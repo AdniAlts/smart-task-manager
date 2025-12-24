@@ -228,7 +228,7 @@ export default function Settings() {
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Telegram Chat ID
                 <a 
-                  href="https://t.me/userinfobot" 
+                  href="https://t.me/SpynixBot" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-violet-400 hover:text-violet-300 ml-2 text-xs"

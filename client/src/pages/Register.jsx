@@ -212,7 +212,7 @@ export default function Register() {
                   />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  Get your Chat ID from @userinfobot on Telegram
+                  Get your Chat ID from <a href="https://t.me/SpynixBot">@SpynixBot</a> on Telegram
                 </p>
               </div>
 
