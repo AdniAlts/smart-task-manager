@@ -32,11 +32,14 @@ const register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        // Set telegram_enabled based on whether telegram_chat_id is provided
+        const telegramEnabled = telegram_chat_id && telegram_chat_id.trim() ? true : false;
+
         // Insert new user
         const [result] = await pool.query(
             `INSERT INTO users (username, email, password_hash, telegram_chat_id, telegram_enabled, email_enabled) 
-             VALUES (?, ?, ?, ?, TRUE, TRUE)`,
-            [name, email, hashedPassword, telegram_chat_id || null]
+             VALUES (?, ?, ?, ?, ?, TRUE)`,
+            [name, email, hashedPassword, telegram_chat_id || null, telegramEnabled]
         );
 
         // Generate token

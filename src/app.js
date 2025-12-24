@@ -5,6 +5,7 @@ const taskRoutes = require('./routes/taskRoutes');
 const authRoutes = require('./routes/authRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const { initScheduler } = require('./services/scheduler');
+const { initTelegramBot } = require('./telegram-bot');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -50,5 +51,13 @@ app.listen(PORT, '0.0.0.0', () => {
         initScheduler();
     } catch (err) {
         console.error('❌ Scheduler error:', err.message);
+    }
+
+    // Initialize Telegram bot
+    try {
+        initTelegramBot();
+        console.log('✅ Telegram bot initialized');
+    } catch (err) {
+        console.error('❌ Telegram bot error:', err.message);
     }
 });
