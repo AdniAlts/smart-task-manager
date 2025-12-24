@@ -126,17 +126,20 @@ const sendNotification = async (user, task, hoursRemaining) => {
 
 // LOGIKA UTAMA: Cek Deadline
 const checkAndNotifyDeadlines = async () => {
-    // Karena config DB sudah timezone +07:00, "NOW()" di JS dan DB sudah sinkron.
-    const now = new Date();
-    
     console.log('\n' + '='.repeat(60));
-    console.log(`🔍 CHECKING DEADLINES (Clean Mode)`);
-    console.log(`⏰ Current Time: ${now.toLocaleString('id-ID')}`);
+    console.log(`🔍 CHECKING DEADLINES`);
     console.log('='.repeat(60));
     
     try {
-        // Query Standard: Cari task dengan deadline antara (Sekarang - 1 Jam) s/d (Sekarang + 30 Jam)
-        // Kita gunakan buffer -1 jam agar tidak ada task yang terlewat jika cron telat sedikit.
+        // PENTING: Ambil waktu dari DATABASE, bukan dari JavaScript!
+        // Database sudah dikonfigurasi timezone +07:00 (WIB)
+        // new Date() di Railway akan selalu UTC, menyebabkan perhitungan salah
+        const [[timeResult]] = await pool.query('SELECT NOW() as db_now');
+        const now = new Date(timeResult.db_now);
+        
+        console.log(`⏰ Database NOW() (WIB): ${now.toLocaleString('id-ID')}`);
+        
+        // Query: Cari task dengan deadline antara (Sekarang - 1 Jam) s/d (Sekarang + 30 Jam)
         const [tasks] = await pool.query(`
             SELECT t.*, u.email, u.telegram_chat_id, u.telegram_enabled, u.email_enabled
             FROM tasks t
@@ -230,7 +233,8 @@ const initScheduler = () => {
     });
 
     // Jalan sekali saat server restart
-    console.log('🚀 Scheduler initialized (Clean Mode) - Checking every 1 minute');
+    console.log('🚀 Scheduler initialized - Checking every 1 minute');
+    console.log('⚠️  Note: Using DATABASE time (WIB), not server time (UTC)');
     checkAndNotifyDeadlines();
 };
 
