@@ -139,72 +139,81 @@ const sendNotification = async (user, task, hoursRemaining) => {
 const checkAndNotifyDeadlines = async () => {
     const now = new Date();
     const TIMEZONE_OFFSET = parseInt(process.env.TIMEZONE_OFFSET || '7');
-    const nowInUserTime = new Date(now.getTime() + (TIMEZONE_OFFSET * 60 * 60 * 1000));
     
     console.log('\n' + '='.repeat(60));
     console.log('🔍 CHECKING DEADLINES');
-    console.log(`⏰ Current Time (UTC): ${now.toISOString()}`);
-    console.log(`⏰ Current Time (User TZ +${TIMEZONE_OFFSET}): ${nowInUserTime.toLocaleString('id-ID')}`);
+    console.log(`⏰ Server Time (UTC): ${now.toISOString()}`);
+    console.log(`⏰ Timezone Offset: +${TIMEZONE_OFFSET} hours`);
     console.log('='.repeat(60));
     
     try {
-        // Ambil semua task yang belum selesai dengan deadline dalam 25 jam ke depan
-        // (25 jam untuk memastikan 24 jam dan 1 jam reminder tercakup)
-        // Hanya ambil task dari user yang punya notifikasi enabled
+        // Ambil semua task yang belum selesai dengan deadline dalam 27 jam ke depan
+        // Range diperlebar ke 27 jam untuk memastikan 24h reminder (22-26 jam) tercakup
+        // Query menggunakan waktu database (yang biasanya WIB)
         const [tasks] = await pool.query(`
             SELECT t.*, u.email, u.telegram_chat_id, u.telegram_enabled, u.email_enabled
             FROM tasks t
             JOIN users u ON t.user_id = u.id
             WHERE t.is_completed = FALSE 
             AND t.deadline IS NOT NULL
-            AND t.deadline BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 25 HOUR)
+            AND t.deadline BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 27 HOUR)
             AND (u.telegram_enabled = TRUE OR u.email_enabled = TRUE)
         `);
 
         if (tasks.length === 0) {
-            console.log('📭 No upcoming deadlines to notify in next 25 hours');
+            console.log('📭 No upcoming deadlines to notify in next 27 hours');
             console.log('='.repeat(60) + '\n');
             return;
         }
 
         console.log(`\n📋 Found ${tasks.length} upcoming task(s) to check`);
         
+        // Ambil waktu sekarang dari database untuk konsistensi timezone
+        const [[dbTime]] = await pool.query('SELECT NOW() as now');
+        const dbNow = new Date(dbTime.now);
+        console.log(`📅 Database NOW(): ${dbNow.toLocaleString('id-ID')}`);
+        
         for (const task of tasks) {
             const deadline = new Date(task.deadline);
-            const msUntilDeadline = deadline - nowInUserTime;
+            
+            // Hitung selisih waktu menggunakan waktu database (bukan server time)
+            // Ini memastikan konsistensi karena deadline dan NOW() dari sumber yang sama
+            const msUntilDeadline = deadline - dbNow;
             const hoursUntilDeadline = msUntilDeadline / (1000 * 60 * 60);
             
             console.log(`\n📝 Checking Task ID ${task.id}: "${task.title}"`);
-            console.log(`   Deadline: ${deadline.toLocaleString('id-ID')}`);
-            console.log(`   Now (User Time): ${nowInUserTime.toLocaleString('id-ID')}`);
+            console.log(`   Deadline (DB): ${deadline.toLocaleString('id-ID')}`);
+            console.log(`   Now (DB): ${dbNow.toLocaleString('id-ID')}`);
             console.log(`   Hours until deadline: ${hoursUntilDeadline.toFixed(2)}h`);
             console.log(`   Flags: notified_24h=${task.notified_24h}, notified_1h=${task.notified_1h}`);
             console.log(`   User: telegram_enabled=${task.telegram_enabled}, email_enabled=${task.email_enabled}`);
             
             // Cek apakah sudah pernah dinotifikasi untuk waktu ini
-            // - 22-26 jam sebelum deadline (reminder 24 jam) - lebih fleksibel
-            // - 0-3 jam sebelum deadline (reminder 1 jam/terakhir)
+            // - 20-27 jam sebelum deadline (reminder 24 jam) - range diperlebar untuk toleransi
+            // - 0-4 jam sebelum deadline (reminder 1 jam/terakhir) - range diperlebar
             
             let shouldNotify = false;
             let notificationType = '';
             
-            if (hoursUntilDeadline >= 22 && hoursUntilDeadline <= 26) {
-                // 24 hour reminder (range diperlebar)
+            if (hoursUntilDeadline >= 20 && hoursUntilDeadline <= 27) {
+                // 24 hour reminder (range diperlebar: 20-27 jam)
                 shouldNotify = !task.notified_24h;
                 notificationType = '24h';
-                console.log(`   ✅ IN 24H RANGE (22-26h)`);
+                console.log(`   ✅ IN 24H RANGE (20-27h)`);
                 console.log(`   → Already notified? ${task.notified_24h ? 'YES ❌' : 'NO ✅'}`);
                 console.log(`   → Will notify? ${shouldNotify ? 'YES 📤' : 'NO (already sent)'}`);
-            } else if (hoursUntilDeadline >= 0 && hoursUntilDeadline <= 3) {
-                // 1 hour/final reminder (range diperlebar)
+            } else if (hoursUntilDeadline >= 0 && hoursUntilDeadline <= 4) {
+                // 1 hour/final reminder (range diperlebar: 0-4 jam)
                 shouldNotify = !task.notified_1h;
                 notificationType = '1h';
-                console.log(`   ✅ IN 1H RANGE (0-3h)`);
+                console.log(`   ✅ IN 1H RANGE (0-4h)`);
                 console.log(`   → Already notified? ${task.notified_1h ? 'YES ❌' : 'NO ✅'}`);
                 console.log(`   → Will notify? ${shouldNotify ? 'YES 📤' : 'NO (already sent)'}`);
+            } else if (hoursUntilDeadline > 4 && hoursUntilDeadline < 20) {
+                console.log(`   ⏭️ IN BETWEEN RANGES (4-20h) - waiting for 1h reminder`);
             } else {
                 console.log(`   ⏭️ NOT IN NOTIFICATION RANGE`);
-                console.log(`   → Need: 22-26h or 0-3h, got: ${hoursUntilDeadline.toFixed(2)}h`);
+                console.log(`   → Need: 20-27h or 0-4h, got: ${hoursUntilDeadline.toFixed(2)}h`);
             }
             
             if (shouldNotify) {
