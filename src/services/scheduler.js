@@ -173,8 +173,8 @@ const checkAndNotifyDeadlines = async () => {
             let shouldNotify = false;
             let notificationType = '';
             
-            // Logic 1: Reminder 24 Jam (Range 20 jam s/d 27 jam sebelum deadline)
-            if (hoursUntilDeadline >= 20 && hoursUntilDeadline <= 27) {
+            // Logic 1: Reminder 24 Jam (Range 23 jam s/d 25 jam sebelum deadline)
+            if (hoursUntilDeadline >= 23 && hoursUntilDeadline <= 25) {
                 if (!task.notified_24h) {
                     shouldNotify = true;
                     notificationType = '24h';
@@ -182,8 +182,8 @@ const checkAndNotifyDeadlines = async () => {
                     console.log(`   ⏭️ Already sent 24h reminder.`);
                 }
             } 
-            // Logic 2: Reminder 1 Jam / Urgent (Range 0 jam s/d 4 jam sebelum deadline)
-            else if (hoursUntilDeadline >= 0 && hoursUntilDeadline <= 4) {
+            // Logic 2: Reminder 1 Jam / Urgent (Range 0 jam s/d 1.5 jam sebelum deadline)
+            else if (hoursUntilDeadline >= 0 && hoursUntilDeadline <= 1.5) {
                 if (!task.notified_1h) {
                     shouldNotify = true;
                     notificationType = '1h';
