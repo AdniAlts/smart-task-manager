@@ -1,491 +1,248 @@
-# 🚀 Smart Task Manager (TaskMind)
+# TaskMind - Smart Task Manager
 
-> AI-powered task management application with intelligent scheduling, natural language processing, and automated notifications.
+<div align="center">
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/AdniAlts/smart-task-manager)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
-[![React](https://img.shields.io/badge/React-19-blue.svg)](https://reactjs.org)
+![TaskMind Logo](client/public/logo.png)
+
+**AI-Powered Task Management with Eisenhower Matrix & Smart Notifications**
+
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-green.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB.svg)](https://reactjs.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1.svg)](https://www.mysql.com/)
+
+[Demo](https://smart-task-manager-ecru.vercel.app/) · [Report Bug](https://github.com/AdniAlts/smart-task-manager/issues) · [Request Feature](https://github.com/AdniAlts/smart-task-manager/issues)
+
+</div>
 
 ---
 
-## ✨ Features
+## Table of Contents
 
-### 🤖 AI-Powered Task Creation
-- **Magic Input**: Create tasks using natural language in Indonesian or English
-- Automatically extracts title, description, deadline, and priority
-- Powered by Google Gemini AI (Gemini 2.5 Flash)
+- [About](#-about)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [API Documentation](#-api-documentation)
 
-### 📊 Smart Dashboard
-- Real-time analytics and productivity metrics
-- Visual charts showing task distribution by status and priority
-- Eisenhower Matrix prioritization
+---
 
-### 🔔 Intelligent Notifications
-- **Email notifications** for upcoming deadlines
-- **Telegram bot integration** for instant alerts
-- Customizable notification timing (hourly checks)
+## About
 
-### 📱 Modern UI/UX
-- Responsive design with TailwindCSS 4
-- Dark mode interface
+**TaskMind** is an intelligent task management application that helps you organize, prioritize, and never miss a deadline. Powered by Google Gemini AI, it automatically categorizes your tasks using the Eisenhower Matrix and sends smart notifications via Telegram and Email.
+
+Perfect for students, professionals, and anyone who wants to boost productivity with AI assistance.
+
+### Why TaskMind?
+
+- **AI-Powered Analysis**: Automatically categorize tasks using Eisenhower Matrix
+- **Multi-Channel Notifications**: Get reminders via Telegram and Email
+- **Smart Reminders**: 24-hour and 1-hour deadline notifications
+- **Visual Dashboard**: Track your productivity with beautiful charts
+- **Modern UI**: Clean, responsive design with dark mode
+
+---
+
+## Features
+
+### Task Management
+- Create, read, update, delete tasks
+- Search and filter tasks
+- Set deadlines and priorities
+- Rich task descriptions
+- AI-powered task analysis with Google Gemini
+
+### Eisenhower Matrix
+- **Do First** (Urgent & Important) - 🔴 High priority
+- **Schedule** (Not Urgent but Important) - 🟡 Medium priority
+- **Delegate** (Urgent but Not Important) - 🔵 Low priority
+- **Eliminate** (Neither Urgent nor Important) - ⚪ Lowest priority
+
+### Smart Notifications
+- **Telegram Bot Integration**: Real-time notifications
+- **Email Notifications**: Powered by Brevo (SendinBlue)
+- **Dual Reminders**: 24-hour and 1-hour before deadline
+- **Customizable**: Toggle notifications on/off per channel
+
+### Analytics Dashboard
+- Task completion trends
+- Priority distribution charts
+- Productivity insights
+- Weekly/monthly statistics
+
+### User Experience
+- Modern dark theme with violet accents
+- Fully responsive design (mobile, tablet, desktop)
+- Fast navigation with React Router
 - Smooth animations and transitions
-- Mobile-friendly
-
-### 🔐 Secure Authentication
-- JWT-based authentication
-- Bcrypt password hashing
-- Protected routes
+- Intuitive UI with Lucide icons
 
 ---
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 ### Frontend
-- **React 19** - UI library
-- **Vite** - Build tool
-- **TailwindCSS 4** - Styling
-- **Recharts** - Data visualization
-- **Lucide Icons** - Icon system
-- **React Router** - Navigation
-- **Axios** - HTTP client
+- **Framework**: React 19.2 with Vite
+- **Styling**: Tailwind CSS 4.1
+- **State Management**: React Context API
+- **Routing**: React Router DOM 7
+- **HTTP Client**: Axios
+- **Charts**: Recharts
+- **Icons**: Lucide React
+- **Notifications**: React Hot Toast
 
 ### Backend
-- **Node.js** - Runtime
-- **Express** - Web framework
-- **MySQL** - Database
-- **JWT** - Authentication
-- **Bcrypt** - Password hashing
+- **Runtime**: Node.js 18+
+- **Framework**: Express 5
+- **Database**: MySQL 8.0
+- **ORM**: mysql2 (raw queries)
+- **Authentication**: JWT + bcryptjs
+- **AI Integration**: Google Gemini AI
+- **Email Service**: Brevo (SendinBlue)
+- **Telegram Bot**: node-telegram-bot-api
+- **Scheduler**: node-cron
 
-### AI & Integrations
-- **Google Gemini AI** - Natural language processing
-- **Telegram Bot API** - Instant notifications
-- **Nodemailer** - Email service
-- **Node-Cron** - Scheduled tasks (Railway) / Vercel Cron (Vercel)
-
-### Deployment
-- **Vercel** - Serverless hosting (current)
-- **Railway** - Previous hosting (traditional server)
-- **PlanetScale** - Database (recommended)
-
----
-
-## 📋 Prerequisites
-
-- Node.js 18+ and npm
-- MySQL database (local or hosted)
-- Google Gemini API key
-- Telegram Bot token (optional)
-- Email service credentials (optional)
+### DevOps & Deployment
+- **Backend Hosting**: Railway
+- **Frontend Hosting**: Vercel
+- **Database**: Railway MySQL
+- **CI/CD**: Git-based auto-deploy
 
 ---
 
-## 🚀 Quick Start
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/AdniAlts/smart-task-manager.git
-cd smart-task-manager
-```
-
-### 2. Install Dependencies
-
-```bash
-# Backend
-npm install
-
-# Frontend
-cd client
-npm install
-cd ..
-```
-
-### 3. Setup Environment Variables
-
-```bash
-# Copy example env file
-cp .env.example .env
-
-# Edit .env with your credentials
-nano .env
-```
-
-Required variables:
-```env
-# Database
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD=your_password
-MYSQL_DATABASE=smart_task_manager
-
-# JWT
-JWT_SECRET=your-super-secret-key
-
-# Google Gemini AI
-GEMINI_API_KEY=your-gemini-api-key
-
-# Telegram (optional)
-TELEGRAM_BOT_TOKEN=your-telegram-bot-token
-
-# Email (optional)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password
-
-# Frontend URL
-FRONTEND_URL=http://localhost:5173
-```
-
-### 4. Setup Database
-
-```bash
-# Import SQL schema
-mysql -u root -p < database/schema-mysql.sql
-
-# Or use MySQL Workbench/phpMyAdmin to import the schema
-```
-
-### 5. Run Development Servers
-
-```bash
-# Terminal 1 - Backend
-npm run dev
-
-# Terminal 2 - Frontend
-cd client
-npm run dev
-```
-
-Open http://localhost:5173 in your browser.
-
----
-
-## 🌐 Deployment to Vercel
-
-### Option 1: One-Click Deploy
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/AdniAlts/smart-task-manager)
-
-### Option 2: Manual Deploy
-
-See detailed guides:
-- **[📘 Complete Deployment Guide](VERCEL_DEPLOYMENT.md)**
-- **[📊 Migration Summary](MIGRATION_SUMMARY.md)**
-- **[✅ Deployment Checklist](DEPLOYMENT_CHECKLIST.md)**
-- **[🗄️ Database Migration](DATABASE_MIGRATION.md)**
-- **[⏰ GitHub Actions Cron Setup](GITHUB_ACTIONS_CRON.md)**
-
-Quick steps:
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy
-vercel
-
-# Add environment variables in Vercel dashboard
-# Setup Telegram webhook
-./setup-telegram-webhook.sh
-
-# Test deployment
-./test-deployment.sh
-```
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 smart-task-manager/
-├── api/                          # Vercel serverless functions
-│   ├── index.js                  # Main API handler
-│   ├── telegram-webhook.js       # Telegram webhook
-│   └── cron-notifications.js     # Scheduled notifications
-├── client/                       # React frontend
+├── client/                    # Frontend React app
+│   ├── public/               # Static assets
 │   ├── src/
-│   │   ├── components/          # React components
-│   │   ├── pages/               # Page components
-│   │   ├── services/            # API services
-│   │   ├── context/             # React context
-│   │   └── assets/              # Static assets
-│   └── public/                   # Public assets
-├── src/                          # Express backend
-│   ├── controllers/             # Route controllers
-│   ├── models/                  # Data models
-│   ├── routes/                  # API routes
-│   ├── services/                # Business logic
-│   │   ├── aiService.js         # Gemini AI integration
-│   │   ├── emailService.js      # Email notifications
-│   │   └── scheduler.js         # Cron jobs
-│   ├── middleware/              # Express middleware
-│   ├── config/                  # Configuration
-│   ├── app.js                   # Express app (Railway)
-│   └── telegram-bot.js          # Telegram bot (Railway)
-├── database/                     # Database schemas
-├── docs/                         # Documentation & screenshots
-├── .github/workflows/           # GitHub Actions
-│   └── hourly-notifications.yml # Cron job alternative
-├── vercel.json                  # Vercel configuration
-└── package.json                 # Dependencies
+│   │   ├── components/       # React components
+│   │   │   ├── auth/        # Auth components
+│   │   │   ├── dashboard/   # Dashboard widgets
+│   │   │   ├── layout/      # Layout components
+│   │   │   ├── tasks/       # Task components
+│   │   │   └── ui/          # UI components
+│   │   ├── context/         # React Context
+│   │   ├── pages/           # Page components
+│   │   ├── services/        # API services
+│   │   ├── App.jsx          # Main app component
+│   │   └── main.jsx         # Entry point
+│   ├── package.json
+│   └── vite.config.js
+│
+├── src/                      # Backend Node.js app
+│   ├── config/              # Configuration
+│   │   └── database.js      # MySQL connection
+│   ├── controllers/         # Route controllers
+│   │   ├── authController.js
+│   │   ├── taskController.js
+│   │   └── dashboardController.js
+│   ├── middleware/          # Express middleware
+│   │   └── authMiddleware.js
+│   ├── models/              # Database models
+│   │   └── taskModel.js
+│   ├── routes/              # API routes
+│   │   ├── authRoutes.js
+│   │   ├── taskRoutes.js
+│   │   └── dashboardRoutes.js
+│   ├── services/            # Business logic
+│   │   ├── aiService.js     # Google Gemini integration
+│   │   ├── emailService.js  # Email notifications
+│   │   └── scheduler.js     # Cron jobs
+│   ├── app.js               # Express app
+│   └── telegram-bot.js      # Telegram bot
+│
+├── database/
+│   └── schema-mysql.sql     # Database schema
+│
+├── docs/
+│   └── screenshots
+│   │   ├── dashboard.png
+│   │   ├── magic-input.png
+│   │   └── tasks.png
+├── .env.example             # Backend env template
+├── package.json             # Backend dependencies
+├── railway.toml             # Railway config
+└── README.md               # This file
 ```
 
 ---
 
-## 🤖 AI Magic Input Examples
-
-The AI understands natural language in both English and Bahasa Indonesia:
-
-**English:**
-- "Submit report tomorrow at 2pm with high priority"
-- "Meeting with client next Monday afternoon"
-- "Buy groceries this weekend"
-
-**Bahasa Indonesia:**
-- "Kumpulin tugas besok jam 2 siang prioritas tinggi"
-- "Meeting dengan klien Senin depan sore"
-- "Beli groceries akhir pekan ini"
-
-The AI automatically:
-- Extracts task title and description
-- Parses dates and times
-- Determines priority level
-- Sets appropriate deadlines
-
----
-
-## 📱 Telegram Bot Setup
-
-### 1. Create Bot
-
-```bash
-# 1. Message @BotFather on Telegram
-# 2. Send /newbot
-# 3. Follow instructions
-# 4. Copy the bot token
-```
-
-### 2. Get Your Chat ID
-
-```bash
-# 1. Send /start to your bot
-# 2. Bot will reply with your chat ID
-# 3. Add chat ID to your profile in TaskMind settings
-```
-
-### 3. Setup Webhook (Vercel)
-
-```bash
-./setup-telegram-webhook.sh
-```
-
-Or manually:
-```bash
-curl -X POST "https://api.telegram.org/bot<TOKEN>/setWebhook" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://your-app.vercel.app/api/telegram-webhook"}'
-```
-
----
-
-## 📧 Email Notifications Setup
-
-### Gmail Example
-
-1. **Enable 2-Factor Authentication** in your Google Account
-2. **Generate App Password**:
-   - Go to Google Account → Security
-   - 2-Step Verification → App passwords
-   - Generate password for "Mail"
-3. **Add to environment variables**:
-   ```env
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASSWORD=generated-app-password
-   ```
-
-### Other Email Providers
-
-Update `EMAIL_HOST` and `EMAIL_PORT`:
-- **Outlook**: smtp-mail.outlook.com:587
-- **Yahoo**: smtp.mail.yahoo.com:587
-- **SendGrid**: smtp.sendgrid.net:587
-
----
-
-## 🔧 API Endpoints
+## API Documentation
 
 ### Authentication
-```
-POST   /api/auth/register      # Register new user
-POST   /api/auth/login         # Login user
-GET    /api/auth/profile       # Get user profile
-PUT    /api/auth/profile       # Update profile
+
+```http
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/auth/me
 ```
 
 ### Tasks
-```
-GET    /api/tasks              # Get all tasks (with filters)
-POST   /api/tasks              # Create task
-POST   /api/tasks/magic        # Create task with AI
-GET    /api/tasks/:id          # Get task by ID
-PUT    /api/tasks/:id          # Update task
-DELETE /api/tasks/:id          # Delete task
+
+```http
+GET    /api/tasks           # Get all user tasks
+GET    /api/tasks/:id       # Get single task
+POST   /api/tasks           # Create task
+POST   /api/tasks/magic     # AI-powered task creation
+PUT    /api/tasks/:id       # Update task
+DELETE /api/tasks/:id       # Delete task
+PATCH  /api/tasks/:id/toggle # Toggle task completion
 ```
 
 ### Dashboard
-```
-GET    /api/dashboard/stats    # Get statistics
-GET    /api/dashboard/charts   # Get chart data
-```
 
-### Cron (Internal)
-```
-POST   /api/cron-notifications # Trigger notifications (requires auth)
+```http
+GET /api/dashboard/stats    # Get dashboard statistics
 ```
 
----
+### Request/Response Examples
 
-## 🧪 Testing
+**Create Task with AI**
+```json
+POST /api/tasks/magic
+{
+  "userInput": "Buat laporan proyek untuk Pak Budi deadline besok jam 5 sore"
+}
 
-```bash
-# Test backend API
-curl http://localhost:3000/api
-
-# Test AI magic input
-curl -X POST http://localhost:3000/api/tasks/magic \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"userText": "Meeting tomorrow at 2pm"}'
-
-# Test deployment
-./test-deployment.sh
+Response:
+{
+  "title": "Buat Laporan Proyek",
+  "description": "Laporan proyek untuk Pak Budi",
+  "deadline": "2025-12-25T17:00:00Z",
+  "priority_level": "do_first",
+  "subject": "Proyek"
+}
 ```
 
 ---
 
-## 🐛 Troubleshooting
-
-### Database Connection Issues
-```bash
-# Check MySQL is running
-sudo systemctl status mysql
-
-# Test connection
-mysql -u root -p
-
-# Check credentials in .env
-```
-
-### Vercel Deployment Issues
-```bash
-# View logs
-vercel logs --follow
-
-# Check environment variables
-vercel env ls
-
-# Redeploy
-vercel --prod
-```
-
-### Telegram Webhook Issues
-```bash
-# Check webhook status
-curl "https://api.telegram.org/bot<TOKEN>/getWebhookInfo"
-
-# Delete webhook
-curl -X POST "https://api.telegram.org/bot<TOKEN>/deleteWebhook"
-```
-
-See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md#troubleshooting) for more.
-
----
-
-## 📸 Screenshots
-
-![Dashboard](docs/screenshots/dashboard.png)
-*Real-time analytics dashboard*
-
-![Magic Input](docs/screenshots/magic-input.png)
-*AI-powered task creation*
-
-![Tasks](docs/screenshots/tasks.png)
-*Task management interface*
-
----
-
-## 🗺️ Roadmap
-
-- [ ] Mobile app (React Native)
-- [ ] Recurring tasks
-- [ ] Team collaboration
-- [ ] Task templates
-- [ ] Calendar integration
-- [ ] Voice input for task creation
-- [ ] Dark/Light theme toggle
-- [ ] Export tasks to PDF/CSV
-- [ ] Subtasks and dependencies
-- [ ] Time tracking
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👨‍💻 Author
+## Author
 
 **AdniAlts**
+
 - GitHub: [@AdniAlts](https://github.com/AdniAlts)
-- LinkedIn: [Your LinkedIn Profile]
+- Repository: [smart-task-manager](https://github.com/AdniAlts/smart-task-manager)
 
 ---
 
-## 🙏 Acknowledgments
+## Screenshots
 
-- Google Gemini AI for natural language processing
-- Vercel for hosting platform
-- PlanetScale for database hosting
-- All open-source libraries used in this project
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
 
----
+### Task List
+![Task List](docs/screenshots/tasks.png)
 
-## 📚 Documentation
-
-- [Vercel Deployment Guide](VERCEL_DEPLOYMENT.md)
-- [Database Migration Guide](DATABASE_MIGRATION.md)
-- [GitHub Actions Cron Setup](GITHUB_ACTIONS_CRON.md)
-- [Migration Summary](MIGRATION_SUMMARY.md)
-- [Deployment Checklist](DEPLOYMENT_CHECKLIST.md)
+### AI Task Creation
+![Magic Input](docs/screenshots/magic-input.png)
 
 ---
 
-## 💬 Support
+<div align="center">
 
-If you have any questions or need help, please:
-- Open an issue on GitHub
-- Contact via email
-- Join our community discussions
+**Built with ❤️ by AdniAlts**
 
----
+⭐ Star this repo if you find it helpful!
 
-**Made with ❤️ using React, Node.js, and AI**
+</div>
