@@ -1,0 +1,46 @@
+name: Hourly Task Notifications
+
+# This GitHub Action serves as a FREE alternative to Vercel Cron Jobs
+# It triggers the notification endpoint every hour
+
+on:
+  schedule:
+    # Runs every hour at minute 0
+    # Cron format: minute hour day month day-of-week
+    - cron: '0 * * * *'
+  
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+jobs:
+  trigger-notifications:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Notification Endpoint
+        run: |
+          echo "🔔 Triggering hourly notifications..."
+          
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST \
+            "${{ secrets.VERCEL_URL }}/api/cron-notifications" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+          
+          echo "Response Code: $HTTP_CODE"
+          echo "Response Body: $BODY"
+          
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ Notifications triggered successfully!"
+          else
+            echo "❌ Failed to trigger notifications"
+            exit 1
+          fi
+
+      - name: Report Status
+        if: always()
+        run: |
+          echo "Job completed at $(date)"
+          echo "Next run: $(date -d '+1 hour')"

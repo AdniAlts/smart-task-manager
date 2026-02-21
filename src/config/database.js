@@ -5,9 +5,33 @@ console.log('  MYSQL_HOST:', process.env.MYSQL_HOST || 'not set');
 console.log('  MYSQLHOST:', process.env.MYSQLHOST || 'not set');
 console.log('  DB_HOST:', process.env.DB_HOST || 'not set');
 
-// Railway MySQL provides variables (with or without underscore)
+// Database configuration for Vercel deployment
+// Supports multiple providers: PlanetScale, Railway, Aiven, etc.
 const getDatabaseConfig = () => {
-    // Railway MySQL individual variables (with underscore: MYSQL_HOST)
+    // Priority 1: DATABASE_URL (PlanetScale, Heroku-style connection string)
+    if (process.env.DATABASE_URL) {
+        console.log('📦 Using DATABASE_URL config');
+        try {
+            const url = new URL(process.env.DATABASE_URL);
+            return {
+                host: url.hostname,
+                port: parseInt(url.port) || 3306,
+                user: decodeURIComponent(url.username),
+                password: decodeURIComponent(url.password),
+                database: url.pathname.slice(1), // Remove leading /
+                waitForConnections: true,
+                connectionLimit: 10,
+                queueLimit: 0,
+                timezone: '+07:00',
+                // PlanetScale requires SSL
+                ssl: process.env.DATABASE_URL.includes('psdb.cloud') ? { rejectUnauthorized: true } : undefined
+            };
+        } catch (err) {
+            console.error('❌ Failed to parse DATABASE_URL:', err.message);
+        }
+    }
+    
+    // Priority 2: Individual MySQL variables (Railway, Aiven, custom)
     if (process.env.MYSQL_HOST) {
         console.log('📦 Using MYSQL_HOST config');
         return {
@@ -19,7 +43,8 @@ const getDatabaseConfig = () => {
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,
-            timezone: '+07:00'
+            timezone: '+07:00',
+            ssl: process.env.MYSQL_SSL === 'true' ? { rejectUnauthorized: true } : undefined
         };
     }
     

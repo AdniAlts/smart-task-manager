@@ -228,8 +228,6 @@ Response:
 
 ## Screenshots
 
-*Add your app screenshots here*
-
 ### Dashboard
 ![Dashboard](docs/screenshots/dashboard.png)
 
