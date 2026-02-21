@@ -10,39 +10,82 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-    'http://localhost:5173',
+    'http://localhost:5173',  // Vite dev server
     'http://localhost:3000',
-    process.env.FRONTEND_URL,
-    // Add your Vercel frontend URL here after deployment
+    'http://localhost:5174',  // Alternative Vite port
+    'https://smart-task-manager-nine-pi.vercel.app', // Production frontend
+    process.env.FRONTEND_URL, // Additional frontend URL from env
 ].filter(Boolean);
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
+        
+        // Allow all localhost origins in development
+        if (origin && origin.startsWith('http://localhost')) {
+            return callback(null, true);
+        }
+        
+        // Allow all vercel.app domains
+        if (origin && origin.includes('.vercel.app')) {
+            return callback(null, true);
+        }
+        
+        // Check allowed origins
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
+            console.log('CORS blocked origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Length', 'X-Request-Id']
 }));
 
 app.use(express.json());
 
-// Routes
+// Routes - Using full /api prefix since Vercel passes full path
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// Root endpoint
-app.get('/api', (req, res) => {
+// API root endpoint
+app.get(['/api', '/api/'], (req, res) => {
     res.json({
         message: 'TaskMind API is Running on Vercel! 🚀',
         version: '1.0.0',
         status: 'active',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            auth: '/api/auth',
+            tasks: '/api/tasks',
+            dashboard: '/api/dashboard',
+            health: '/api/health',
+            telegram: '/api/telegram-webhook',
+            cron: '/api/cron-notifications'
+        }
+    });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: 'TaskMind API is Running on Vercel! 🚀',
+        version: '1.0.0',
+        status: 'active',
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            auth: '/api/auth',
+            tasks: '/api/tasks',
+            dashboard: '/api/dashboard',
+            health: '/api/health',
+            telegram: '/api/telegram-webhook',
+            cron: '/api/cron-notifications'
+        }
     });
 });
 

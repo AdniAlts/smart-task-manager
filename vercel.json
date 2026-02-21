@@ -1,23 +1,21 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/telegram-webhook",
-      "dest": "/api/telegram-webhook.js"
+      "source": "/api/telegram-webhook",
+      "destination": "/api/telegram-webhook.js"
     },
     {
-      "src": "/api/cron-notifications",
-      "dest": "/api/cron-notifications.js"
+      "source": "/api/cron-notifications",
+      "destination": "/api/cron-notifications.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/",
+      "destination": "/api/index.js"
     }
   ],
   "env": {
